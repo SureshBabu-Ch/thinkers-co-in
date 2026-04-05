@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thinkers</title>
+
+    <style>
+        body { margin: 0; font-family: Arial; background-color: #f5f5f5; }
+        .header img { width: 100%; }
+        .menu { background-color: #34495e; text-align: center; padding: 12px; }
+        .menu button { background: none; border: none; color: white; margin: 10px; font-size: 14px; cursor: pointer; }
+        .menu button.active-tab { text-decoration: underline; font-weight: bold; }
+        .content { padding: 30px; text-align: center; }
+        .tab-content { display: none; }
+        .active { display: block; }
+        .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; }
+        .card { width: 260px; background: white; border-radius: 12px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); transition: 0.3s; }
+        .card:hover { transform: scale(1.05); }
+        .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; }
+        .card h3 { font-size: 16px; margin: 10px 0; }
+        .card a { text-decoration: none; color: white; background-color: #e74c3c; padding: 8px 12px; border-radius: 6px; display: inline-block; }
+        .footer { background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin-top: 20px; }
+    </style>
+
+    <script>
+        function showTab(tabId, btn) {
+            let tabs = document.getElementsByClassName("tab-content");
+            let buttons = document.querySelectorAll(".menu button");
+
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+            buttons.forEach(b => b.classList.remove("active-tab"));
+
+            document.getElementById(tabId).classList.add("active");
+            btn.classList.add("active-tab");
+        }
+    </script>
+</head>
+
+<body>
+
+<div class="header">
+    <img src="Channel_Header.jpeg">
+</div>
+
+<div class="menu">
+    <button class="active-tab" onclick="showTab('chem', this)">Engineering Chemistry</button>
+    <button onclick="showTab('physics', this)">Engineering Physics</button>
+    <button onclick="showTab('mech', this)">Engineering Mechanics</button>
+    <button onclick="showTab('math', this)">Engineering Mathematics</button>
+    <button onclick="showTab('msc', this)">M.Sc Chemistry</button>
+    <button onclick="showTab('metal', this)">Metallurgy & Materials</button>
+    <button onclick="showTab('prog', this)">Programming</button>
+</div>
+
+<div class="content">
+
+<!-- CHEMISTRY -->
+<div id="chem" class="tab-content active">
+<h2>Engineering Chemistry</h2>
+<div class="grid">
+
+<div class="card"><img src="https://i.ytimg.com/vi/sJExByJj8mY/hqdefault.jpg"><h3>Schrodinger's Wave Equation - Bonds in Solids</h3><a href="https://youtube.com/playlist?list=PL482xObHlFyxrjcFF8-3dgFxABCpBlCII" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/-oOdH_h6Fsk/hqdefault.jpg"><h3>Electrochemical Cells</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfSykPSuwvvT_OQMbwEFslSS" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/kepZ57A4iyI/hqdefault.jpg"><h3>Corrosion</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfRiE59JHyliQf2bAG7diATa" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/vhNgE4iDz6E/hqdefault.jpg"><h3>Nanomaterials</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfTJpRrFkzPp23HruTUdNUzu" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/rzVeVd16vFQ/hqdefault.jpg"><h3>Polymer Technology</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfR5MDViMNDEsOs3DO7CDdJN" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/74NrU_BX6_Q/hqdefault.jpg"><h3>Water Technology</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfRe9WqEwtm3wGYyeS2a9ABA" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/Svlsg82MO0A/hqdefault.jpg"><h3>Spectroscopic Techniques</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfRaADN8l_v6UY9jUHPI4o02" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/aS7AkVOTTWs/hqdefault.jpg"><h3>Non-Conventional Energy Sources</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfT_qo-lcN7sQ_t5712XXMUo" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/HbFYH2yhUfY/hqdefault.jpg"><h3>Molecular Switches</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfQ05R5nX0z-3eTV3l22a7p8" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/nz0uR0yjtQ4/hqdefault.jpg"><h3>Non-Elemental Semiconductors</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfRfa5UKVOHuM2IImhF5NMmV" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/1iq5B3EtmcY/hqdefault.jpg"><h3>Revision Classes</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfSWdczcXYmtcpgPvPLT5OCo" target="_blank">Open Playlist</a></div>
+
+</div>
+</div>
+
+<!-- MATHEMATICS -->
+<div id="math" class="tab-content">
+<h2>Engineering Mathematics</h2>
+<div class="grid">
+<div class="card"><img src="https://i.ytimg.com/vi/jwA5wV9rD1U/hqdefault.jpg"><h3>DIFFERENTIAL EQUATIONS AND VECTOR CALCULUS</h3><a href="https://youtube.com/playlist?list=PL482xObHlFyy5oAJqKo8P_6pkICbw4GKu" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/tRrBJB4C3_A/hqdefault.jpg"><h3>FOURIER SERIES & FOURIER TRANSFORMS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfS_nuN5mapgt98XaYlx56Pa" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/cpTKVx2d7SA/hqdefault.jpg"><h3>SYSTEM OF LINEAR EQUATIONS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfRo-MdbnWU8TVgAtugFSBWd" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/_l3G2H6zc9s/hqdefault.jpg"><h3>CAYLEY-HAMILTON</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfTxISIGUrvceDZIy0-l_AEe" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/zygQ55xkbwE/hqdefault.jpg"><h3>ITERATION METHODS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfTYNC2t6jwCQHKq9fR2uAMJ" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/4Mj1YDD2U5M/hqdefault.jpg"><h3>MATRICES OPERATIONS - USING CALCULATOR</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfQ1aDnHS4KrfLHDDm0S5jJL" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/hnQnbCJ8a3I/hqdefault.jpg"><h3>BISECTION METHOD</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfS9kzdF1xcs3ICkRZHSO3cO" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/aV8SYq0uFnE/hqdefault.jpg"><h3>SECOND ORDER PDE</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfSCA9A_OzQPuZ-jUQzjkabe" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/oxb398MiN98/hqdefault.jpg"><h3>QUADRATIC FORMS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfQbVb8hYnIuN18tgFC6BzNu" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/LSRn98tzVsg/hqdefault.jpg"><h3>M2 PREVIOUS PAPERS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfT5Q7B8oB5P1tCZHVZC3yMj" target="_blank">Open Playlist</a></div>
+</div>
+</div>
+
+<!-- PHYSICS -->
+<div id="physics" class="tab-content">
+<h2>Engineering Physics</h2>
+<div class="grid">
+<div class="card"><img src="https://i.ytimg.com/vi/zhGFuDkTfO8/hqdefault.jpg"><h3>WAVE OPTICS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfQtxictLchSAaEv8Htbxwiq" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/__9kAFOKSys/hqdefault.jpg"><h3>FREE ELECTRON THEORY</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfRNUWOYQ8cBMvLjEzEeSJMq" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/wtE2YDgCRKs/hqdefault.jpg"><h3>LASERS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfQpdbiEeSc3fBMf1l5Ljj2h" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/cfYGNocOhtc/hqdefault.jpg"><h3>POLARIZATION PROBLEMS DISCUSSION</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfSUpiU52OuwW7Uav-jvcL1c" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/ElByh0EWOhI/hqdefault.jpg"><h3>DIELECTRICS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfTQbPOAs5_vctkomslfNF4a" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/Zhho0NCGofE/hqdefault.jpg"><h3>FIBRE OPTICS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfQIy0t8HeeBb7g-4HxMEwf9" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/7V6g2ZbkRhQ/hqdefault.jpg"><h3>SEMICONDUCTOR PHYSICS</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfSZrGMzotoj5ystkEpWojoR" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/NaL_w4LER88/hqdefault.jpg"><h3>MAGNETISM</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfSKCHsAMMsJwC9I_9kmvzV-" target="_blank">Open Playlist</a></div>
+</div>
+</div>
+
+<!-- MECHANICS -->
+<div id="mech" class="tab-content">
+<h2>Engineering Mechanics</h2>
+<div class="grid">
+<div class="card"><img src="https://i.ytimg.com/vi/IzURDVsQFWE/hqdefault.jpg"><h3>CENTROID & CENTRE OF GRAVITY</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfR_iu0VXm33u-T4TUUCqSBQ" target="_blank">Open Playlist</a></div>
+<div class="card"><img src="https://i.ytimg.com/vi/xbVYvEc_97E/hqdefault.jpg"><h3>AREA MOMENT OF INERTIA</h3><a href="https://youtube.com/playlist?list=PLIjmfOVRMlfSD6PARJUDoC0g9Dx0MvZbR" target="_blank">Open Playlist</a></div>
+</div>
+</div>
+
+<!-- METALLURGY -->
+<div id="metal" class="tab-content">
+<h2>Metallurgy & Materials</h2>
+<div class="grid">
+<div class="card">
+<img src="https://i.ytimg.com/vi/ACp2UASpNR8/hqdefault.jpg">
+<h3>BONDS IN SOLIDS - METALLURGY AND MATERIAL SCIENCE</h3>
+<a href="https://youtube.com/playlist?list=PLIjmfOVRMlfQGyT4gDZUG0VGGBuMgH8YY" target="_blank">Open Playlist</a>
+</div>
+</div>
+</div>
+
+<!-- PROGRAMMING (ADDED) -->
+<div id="prog" class="tab-content">
+<h2>Programming</h2>
+<div class="grid">
+<div class="card">
+<img src="https://img.youtube.com/vi/zVmoZzfjiaM/maxresdefault.jpg"
+onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/zVmoZzfjiaM/hqdefault.jpg';">
+<h3>INTRODUCTION TO PROGRAMMING REVISION CLASSES</h3>
+<a href="https://youtube.com/playlist?list=PL482xObHlFyySoji-NTjLoD2MkcPun5DC" target="_blank">Open Playlist</a>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="footer">
+<p>© 2026 Thinkers | All Rights Reserved</p>
+</div>
+
+</body>
+</html>
