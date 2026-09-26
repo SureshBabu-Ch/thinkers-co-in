@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Optical Pyrometer Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #fdfcfc; color: #1b1c1d; }
+        .controls { display: flex; gap: 20px; margin-bottom: 20px; align-items: center; }
+        .control-group { display: flex; flex-direction: column; }
+        .hud { display: flex; gap: 30px; font-size: 16px; font-weight: bold; margin-bottom: 15px; padding: 15px; background: #f0f4f9; border-radius: 8px;}
+        .footer { text-align: center; font-size: 11px; margin-top: 30px; color: #444746; border-top: 1px solid #dcdfe5; padding-top: 15px; }
+        #plot { margin-bottom: 20px; overflow: visible; }
+    </style>
+</head>
+<body>
+    <h2>Optical Pyrometer Simulation</h2>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label style="font-weight: 500; font-size: 14px; margin-bottom: 5px;">Target Object</label>
+            <select id="target" style="padding: 8px; border-radius: 6px; border: 1px solid #747775;">
+                <option value="Blast Furnace">Blast Furnace</option>
+                <option value="Sun" selected>Sun</option>
+                <option value="Sirius A">Sirius A</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label style="font-weight: 500; font-size: 14px; margin-bottom: 5px;">Scanner Wavelength: <span id="scanner-val">500</span> nm</label>
+            <input type="range" id="scanner" min="200" max="2000" value="500" step="1" style="width: 300px; cursor: pointer;">
+        </div>
+    </div>
+    
+    <div class="hud">
+        <div id="calc-temp">Scanner Calc. Temp (T): <span style="color: #b3261e;">5796 K</span></div>
+        <div id="actual-temp">Target Actual Temp: <span style="color: #146c2e;">5778 K</span></div>
+    </div>
+    
+    <div id="plot"></div>
+    
+    <div id="math" style="margin-bottom: 20px; font-size: 15px; line-height: 1.6;"></div>
+    
+    <div class="footer">
+        © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.<br>Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+    </div>
+
+    <script>
+        const TARGET_TEMPS = { 'Blast Furnace': 1800, 'Sun': 5778, 'Sirius A': 9940 };
+        const WIEN_CONSTANT = 2.897772e6;
+        
+        function update() {
+            const target = document.getElementById("target").value;
+            const scanner = parseFloat(document.getElementById("scanner").value);
+            document.getElementById("scanner-val").innerText = scanner;
+            
+            const actualT = TARGET_TEMPS[target];
+            const peakLambda = WIEN_CONSTANT / actualT;
+            const computedTemp = WIEN_CONSTANT / scanner;
+            
+            document.getElementById("calc-temp").innerHTML = "Scanner Calc. Temp (T): <span style='color: #b3261e;'>" + Math.round(computedTemp) + " K</span>";
+            document.getElementById("actual-temp").innerHTML = "Target Actual Temp: <span style='color: #146c2e;'>" + actualT + " K</span>";
+            
+            const mathHtml = "<b>Wien's Displacement Law Calculation:</b><br><br>" +
+                "T = b / λ_scanner = (2.897772 × 10^6 nm·K) / (" + scanner + " nm) = <b>" + Math.round(computedTemp) + " K</b><br><br>" +
+                "<i style='color: #444746;'>(When the scanner matches the target's peak emitting wavelength of ~" + Math.round(peakLambda) + " nm, the calculated temperature matches the actual surface temperature.)</i>";
+            document.getElementById("math").innerHTML = mathHtml;
+            
+            const points = [];
+            const C = 4.965114;
+            const factor = Math.exp(C) - 1;
+            
+            for (let l = 100; l <= 2000; l += 5) {
+                const ratio = peakLambda / l;
+                let radiance = 0;
+                if (ratio > 0.05) {
+                    const expTerm = Math.exp(C * ratio);
+                    radiance = 100 * Math.pow(ratio, 5) * factor / (expTerm - 1);
+                }
+                points.push({ wavelength: l, radiance: Math.min(radiance, 115) });
+            }
+            
+            const plotDiv = document.getElementById("plot");
+            plotDiv.innerHTML = "";
+            const plot = Plot.plot({
+                width: 850,
+                height: 380,
+                marginLeft: 60,
+                marginRight: 40,
+                marginBottom: 45,
+                x: { label: "Wavelength λ (nm)", domain: [100, 2000], grid: true },
+                y: { label: "Spectral Radiance (%)", domain: [0, 115], grid: true },
+                marks: [
+                    Plot.ruleY([0], { stroke: "#1b1c1d", strokeWidth: 2 }),
+                    Plot.ruleX([100], { stroke: "#1b1c1d", strokeWidth: 2 }),
+                    Plot.rectX([{ x1: 400, x2: 700 }], { x1: "x1", x2: "x2", fill: "#146c2e", fillOpacity: 0.12 }),
+                    Plot.text([{ x: 550, y: 112 }], { x: "x", y: "y", text: () => "Visible Band (400-700nm)", fill: "#444746", fontSize: 11 }),
+                    Plot.line(points, { x: "wavelength", y: "radiance", stroke: "#0b57d0", strokeWidth: 2.5 }),
+                    Plot.ruleX([peakLambda], { stroke: "#146c2e", strokeWidth: 2, strokeDasharray: "4 4" }),
+                    Plot.text([{ x: peakLambda, y: 95 }], { x: "x", y: "y", text: () => "Peak λ (" + Math.round(peakLambda) + "nm)", fill: "#146c2e", textAnchor: peakLambda > 1600 ? "end" : "start", dx: peakLambda > 1600 ? -8 : 8, fontSize: 12, fontWeight: "bold" }),
+                    Plot.ruleX([scanner], { stroke: "#b3261e", strokeWidth: 2 }),
+                    Plot.text([{ x: scanner, y: 30 }], { x: "x", y: "y", text: () => "Scanner (" + scanner + "nm)", fill: "#b3261e", textAnchor: scanner > 1600 ? "end" : "start", dx: scanner > 1600 ? -8 : 8, fontSize: 12, fontWeight: "bold" })
+                ]
+            });
+            plotDiv.appendChild(plot);
+        }
+        
+        document.getElementById("target").addEventListener("change", update);
+        document.getElementById("scanner").addEventListener("input", update);
+        update();
+    </script>
+</body>
+</html>

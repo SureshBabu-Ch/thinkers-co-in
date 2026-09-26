@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Blackbody Cavity Standing Waves & Degrees of Freedom</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --accent: #38bdf8;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --purple: #c084fc;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 18px; }
+    .container { max-width: 1260px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    header h1 { font-size: 1.6rem; color: #fff; margin-bottom: 4px; }
+    header p { color: var(--muted); font-size: 0.9rem; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 14px; background: var(--card); border: 1px solid var(--border); padding: 12px 18px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between; }
+    .tool-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+    select, input[type=range] { accent-color: var(--accent); }
+    select { background:#090d16; color:#fff; border:1px solid var(--border); padding:4px 8px; border-radius:4px; cursor:pointer; }
+    .val-pill { background: #090d16; border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; font-family: monospace; color: var(--accent); font-weight: bold; }
+    
+    .btn { background: #0284c7; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 0.82rem; }
+    .btn:hover { background: #0369a1; }
+    .btn-sec { background: #334155; }
+    .btn-sec:hover { background: #475569; }
+
+    .dof-summary-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 768px) { .dof-summary-banner { grid-template-columns: 1fr 1fr; } }
+
+    .dof-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .dof-chip span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
+    .dof-chip strong { font-size: 1.25rem; font-family: monospace; color: #fff; }
+    .dof-chip small { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
+
+    .grid-main { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; }
+    @media (max-width: 920px) { .grid-main { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .card h2 { font-size: 1.02rem; color: var(--accent); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(51, 65, 85, 0.5); padding-bottom: 8px; }
+    
+    canvas { background: #060911; border: 1px solid var(--border); border-radius: 6px; display: block; width: 100%; height: auto; }
+
+    .legend-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; margin-top: 8px; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+    .mode-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 10px;
+    }
+    .mode-table th { background: #0c1524; color: var(--muted); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .mode-table td { padding: 5px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.4); font-family: monospace; }
+    .mode-table tr.active-row { background: rgba(56, 189, 248, 0.15); color: var(--accent); font-weight: bold; }
+
+    .theory-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-top: 16px; }
+    .theory-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>2D Cavity Standing Waves &amp; Calculated Degrees of Freedom</h1>
+    <p>Live Degree of Freedom Counting: Spatial Modes, Quadratic Coordinate DoFs, Polarizations, and Total Cavity States</p>
+  </header>
+
+  <!-- Live Calculated Degrees of Freedom Summary Banner -->
+  <div class="dof-summary-banner">
+    <div class="dof-chip" style="border-top: 3px solid var(--accent);">
+      <span>Selected Mode</span>
+      <strong id="statModeName" style="color:var(--accent);">(2, 2)</strong>
+      <small>Eigenmode (n<sub>x</sub>, n<sub>y</sub>)</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--green);">
+      <span>Quadratic DoFs (Selected Mode)</span>
+      <strong id="statModeDoF" style="color:var(--green);">2 DoFs</strong>
+      <small>1 Electric (T) + 1 Magnetic (V)</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--yellow);">
+      <span>Degeneracy Factor g<sub>n</sub></span>
+      <strong id="statDegen" style="color:var(--yellow);">1 (Non-Deg.)</strong>
+      <small>Distinct pairs with same |k|</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--purple);">
+      <span>Cumulative DoFs in Cavity</span>
+      <strong id="statTotalDoFs" style="color:var(--purple);">32 DoFs</strong>
+      <small>Up to selected frequency cut-off</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <label>Mode (n<sub>x</sub>, n<sub>y</sub>):</label>
+      <select id="nxSelect">
+        <option value="1">n_x = 1</option>
+        <option value="2" selected>n_x = 2</option>
+        <option value="3">n_x = 3</option>
+        <option value="4">n_x = 4</option>
+      </select>
+      <select id="nySelect">
+        <option value="1">n_y = 1</option>
+        <option value="2" selected>n_y = 2</option>
+        <option value="3">n_y = 3</option>
+        <option value="4">n_y = 4</option>
+      </select>
+    </div>
+
+    <div class="tool-group">
+      <label for="temp">Cavity T:</label>
+      <input type="range" id="temp" min="1000" max="6000" step="200" value="4000">
+      <span class="val-pill" id="tVal">4000 K</span>
+    </div>
+
+    <div class="tool-group">
+      <label for="speedRange">Speed:</label>
+      <input type="range" id="speedRange" min="0.2" max="2.0" step="0.1" value="0.9">
+      <span class="val-pill" id="spdVal">0.9x</span>
+    </div>
+
+    <div>
+      <button class="btn" id="playBtn">Pause</button>
+      <button class="btn btn-sec" id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <div class="card">
+      <h2>
+        <span>1. 2D Cavity Field Distribution E<sub>z</sub>(x, y, t)</span>
+        <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;" id="wavenumberLabel">k = 2.83 (&pi;/L)</span>
+      </h2>
+      <canvas id="canvas2D" width="620" height="420"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#38bdf8;"></span>Positive (+E<sub>z</sub>)</span>
+        <span><span class="legend-dot" style="background:#f87171;"></span>Negative (&minus;E<sub>z</sub>)</span>
+        <span><span class="legend-dot" style="background:#ffffff; border:1px solid #94a3b8;"></span><b>Nodal Lines (E<sub>z</sub> = 0)</b></span>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>
+          <span>2. 3D Isometric View (Transverse Oscillation)</span>
+          <span style="font-size:0.75rem; color:var(--muted);" id="isoDofTag">Active DoF: E = kT</span>
+        </h2>
+        <canvas id="canvasIso" width="480" height="180"></canvas>
+      </div>
+
+      <div class="card" style="margin-bottom:0;">
+        <h2>
+          <span>3. Mode Hierarchy &amp; Degrees of Freedom Table</span>
+          <span style="font-size:0.75rem; color:var(--muted);">All Modes up to |k|</span>
+        </h2>
+        <div style="max-height: 190px; overflow-y: auto;">
+          <table class="mode-table">
+            <thead>
+              <tr>
+                <th>(n<sub>x</sub>, n<sub>y</sub>)</th>
+                <th>|k| &times; (L/&pi;)</th>
+                <th>Degeneracy</th>
+                <th>Quadratic DoFs</th>
+                <th>Total Energy</th>
+              </tr>
+            </thead>
+            <tbody id="modeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory-card">
+    <h3>Exact Degree of Freedom Mathematical Formulas for 2D Cavities</h3>
+    <ul style="margin: 8px 0 8px 20px;">
+      <li>
+        <b>1. Quadratic Degrees of Freedom per Spatial Mode ($f = 2$):</b> Each independent spatial standing wave mode $(n_x, n_y)$ acts as an autonomous harmonic oscillator with electric energy density ($\propto E_z^2$) and magnetic energy density ($\propto B_x^2 + B_y^2$). By equipartition, each quadratic coordinate receives $\frac{1}{2}k_B T$, giving <b>2 degrees of freedom ($E = k_B T$) per mode</b>.
+      </li>
+      <li>
+        <b>2. Spatial Mode Counting in 2D ($N(k)$):</b> Valid modes lie in the positive quadrant of $k$-space ($n_x \ge 1, n_y \ge 1$). The total number of independent spatial modes with wavenumber below $k$ is:
+        <br>
+        <span style="font-family: monospace; color:var(--accent); display:block; text-align:center; margin: 4px 0;">
+          N_spatial(k) &approx; &frac14; &pi; (kL / &pi;)&sup2; = &frac14; &pi; (n_x&sup2; + n_y&sup2;)
+        </span>
+      </li>
+      <li>
+        <b>3. Total Thermal Degrees of Freedom ($F_{\text{total}}$):</b> Multiplying by 2 quadratic degrees of freedom per spatial mode:
+        <br>
+        <span style="font-family: monospace; color:var(--purple); display:block; text-align:center; margin: 4px 0;">
+          F_{\text{total}} = 2 &times; N_spatial(k) &implies; &lang;E_{\text{cavity}}&rang; = F_{\text{total}} &times; (&frac12; k_B T) = N_spatial &times; k_B T
+        </span>
+      </li>
+      <li>
+        <b>4. Degeneracy Multiplicity:</b> Non-symmetric modes $(n_x \neq n_y)$ like $(1, 2)$ and $(2, 1)$ have the exact same frequency $\omega = c\frac{\pi}{L}\sqrt{5}$, but represent <b>two completely orthogonal spatial modes (4 quadratic degrees of freedom total, storing $2k_B T$)</b>.
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  var kB = 1.380649e-23;
+  var eV = 1.602176634e-19;
+
+  var nxSel = document.getElementById('nxSelect');
+  var nySel = document.getElementById('nySelect');
+  var tempSlider = document.getElementById('temp');
+  var tVal = document.getElementById('tVal');
+  var speedSlider = document.getElementById('speedRange');
+  var spdVal = document.getElementById('spdVal');
+  var playBtn = document.getElementById('playBtn');
+  var resetBtn = document.getElementById('resetBtn');
+
+  var c2D = document.getElementById('canvas2D');
+  var ctx2D = c2D.getContext('2d');
+  var cIso = document.getElementById('canvasIso');
+  var ctxIso = cIso.getContext('2d');
+
+  var running = true;
+  var phase = 0;
+  var gridResX = 80;
+  var gridResY = 60;
+
+  playBtn.onclick = function() {
+    running = !running;
+    playBtn.innerText = running ? 'Pause' : 'Resume';
+    if (running) requestAnimationFrame(loop);
+  };
+
+  resetBtn.onclick = function() {
+    phase = 0;
+  };
+
+  function updateDegreesOfFreedomTable(curNx, curNy, T) {
+    var kT_eV = (kB * T) / eV;
+    var curK2 = curNx * curNx + curNy * curNy;
+    var tbody = document.getElementById('modeTableBody');
+    tbody.innerHTML = '';
+
+    var modes = [];
+    for (var x = 1; x <= 4; x++) {
+      for (var y = 1; y <= 4; y++) {
+        var k2 = x * x + y * y;
+        modes.push({ nx: x, ny: y, k2: k2, kVal: Math.sqrt(k2) });
+      }
+    }
+
+    modes.sort(function(a, b) { return a.kVal - b.kVal; });
+
+    var totalQuadraticDoFs = 0;
+
+    for (var m = 0; m < modes.length; m++) {
+      var item = modes[m];
+      var isCurrent = (item.nx === curNx && item.ny === curNy);
+      var isDegenerate = (item.nx !== item.ny);
+
+      if (item.k2 <= curK2) {
+        totalQuadraticDoFs += 2;
+      }
+
+      var tr = document.createElement('tr');
+      if (isCurrent) tr.className = 'active-row';
+
+      tr.innerHTML = 
+        '<td>(' + item.nx + ', ' + item.ny + ')</td>' +
+        '<td>' + item.kVal.toFixed(2) + '</td>' +
+        '<td>' + (isDegenerate ? '2-fold' : '1 (Unique)') + '</td>' +
+        '<td>2 DoFs</td>' +
+        '<td>' + kT_eV.toFixed(3) + ' eV</td>';
+      tbody.appendChild(tr);
+    }
+
+    document.getElementById('statModeName').innerText = '(' + curNx + ', ' + curNy + ')';
+    var isCurDegen = (curNx !== curNy);
+    document.getElementById('statDegen').innerText = isCurDegen ? '2-fold degenerate' : '1 (Unique)';
+    document.getElementById('statTotalDoFs').innerText = totalQuadraticDoFs + ' DoFs';
+  }
+
+  function loop() {
+    var nx = parseInt(nxSel.value, 10);
+    var ny = parseInt(nySel.value, 10);
+    var T = parseFloat(tempSlider.value);
+    var speed = parseFloat(speedSlider.value);
+
+    tVal.innerText = T + ' K';
+    spdVal.innerText = speed.toFixed(1) + 'x';
+
+    var kNorm = Math.sqrt(nx * nx + ny * ny);
+    document.getElementById('wavenumberLabel').innerText = '|k| = ' + kNorm.toFixed(2) + ' (\u03c0/L)';
+
+    var omega = 1.2 * kNorm / Math.SQRT2;
+    if (running) {
+      phase += 0.04 * speed * omega;
+    }
+
+    var cosVal = Math.cos(phase);
+
+    // 1. 2D Field Distribution
+    var w2 = c2D.width;
+    var h2 = c2D.height;
+    ctx2D.clearRect(0, 0, w2, h2);
+
+    var pad = 40;
+    var cavW = w2 - 2 * pad;
+    var cavH = h2 - 2 * pad;
+
+    ctx2D.fillStyle = '#334155';
+    ctx2D.fillRect(pad - 8, pad - 8, cavW + 16, 8);
+    ctx2D.fillRect(pad - 8, pad + cavH, cavW + 16, 8);
+    ctx2D.fillRect(pad - 8, pad - 8, 8, cavH + 16);
+    ctx2D.fillRect(pad + cavW, pad - 8, 8, cavH + 16);
+
+    var cellW = cavW / gridResX;
+    var cellH = cavH / gridResY;
+
+    for (var ix = 0; ix < gridResX; ix++) {
+      var xNorm = (ix + 0.5) / gridResX;
+      var sinX = Math.sin(nx * Math.PI * xNorm);
+
+      for (var iy = 0; iy < gridResY; iy++) {
+        var yNorm = (iy + 0.5) / gridResY;
+        var sinY = Math.sin(ny * Math.PI * yNorm);
+
+        var val = sinX * sinY * cosVal;
+
+        var r, g, b, alpha;
+        if (val > 0) {
+          r = Math.floor(56 * val);
+          g = Math.floor(189 * val);
+          b = Math.floor(248 * val);
+          alpha = 0.15 + 0.85 * val;
+        } else {
+          var absVal = -val;
+          r = Math.floor(239 * absVal);
+          g = Math.floor(68 * absVal);
+          b = Math.floor(68 * absVal);
+          alpha = 0.15 + 0.85 * absVal;
+        }
+
+        ctx2D.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+        ctx2D.fillRect(pad + ix * cellW, pad + iy * cellH, cellW + 0.5, cellH + 0.5);
+      }
+    }
+
+    // Nodal Lines
+    ctx2D.strokeStyle = '#ffffff';
+    ctx2D.lineWidth = 2;
+    if (ctx2D.setLineDash) ctx2D.setLineDash([5, 4]);
+
+    for (var i = 1; i < nx; i++) {
+      var nX = pad + (i / nx) * cavW;
+      ctx2D.beginPath();
+      ctx2D.moveTo(nX, pad);
+      ctx2D.lineTo(nX, pad + cavH);
+      ctx2D.stroke();
+    }
+    for (var j = 1; j < ny; j++) {
+      var nY = pad + (j / ny) * cavH;
+      ctx2D.beginPath();
+      ctx2D.moveTo(pad, nY);
+      ctx2D.lineTo(pad + cavW, nY);
+      ctx2D.stroke();
+    }
+    if (ctx2D.setLineDash) ctx2D.setLineDash([]);
+
+    ctx2D.fillStyle = '#94a3b8';
+    ctx2D.font = '11px monospace';
+    ctx2D.fillText('x = 0', pad - 35, pad + cavH / 2);
+    ctx2D.fillText('x = L_x', pad + cavW + 12, pad + cavH / 2);
+    ctx2D.fillText('y = 0', pad + cavW / 2 - 15, pad + cavH + 24);
+    ctx2D.fillText('y = L_y', pad + cavW / 2 - 15, pad - 14);
+
+    // 2. 3D Isometric View
+    var wIso = cIso.width;
+    var hIso = cIso.height;
+    ctxIso.clearRect(0, 0, wIso, hIso);
+
+    var isoCols = 22;
+    var isoRows = 16;
+    var originX = wIso * 0.5;
+    var originY = hIso * 0.65;
+    var scaleX = 8.5;
+    var scaleY = 4.6;
+    var ampZ = 35 * cosVal;
+
+    function project(px_i, py_i, zVal) {
+      return {
+        x: originX + (px_i - py_i) * scaleX,
+        y: originY + (px_i + py_i) * scaleY - zVal
+      };
+    }
+
+    ctxIso.lineWidth = 1;
+
+    for (var iy2 = -isoRows/2; iy2 <= isoRows/2; iy2++) {
+      var yFrac = (iy2 + isoRows/2) / isoRows;
+      var sY = Math.sin(ny * Math.PI * yFrac);
+
+      ctxIso.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+      ctxIso.beginPath();
+      for (var ix2 = -isoCols/2; ix2 <= isoCols/2; ix2++) {
+        var xFrac = (ix2 + isoCols/2) / isoCols;
+        var sX = Math.sin(nx * Math.PI * xFrac);
+        var z = ampZ * sX * sY;
+        var pt = project(ix2, iy2, z);
+        if (ix2 === -isoCols/2) ctxIso.moveTo(pt.x, pt.y); else ctxIso.lineTo(pt.x, pt.y);
+      }
+      ctxIso.stroke();
+    }
+
+    for (var ix3 = -isoCols/2; ix3 <= isoCols/2; ix3++) {
+      var xFrac2 = (ix3 + isoCols/2) / isoCols;
+      var sX2 = Math.sin(nx * Math.PI * xFrac2);
+
+      ctxIso.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      ctxIso.beginPath();
+      for (var iy3 = -isoRows/2; iy3 <= isoRows/2; iy3++) {
+        var yFrac2 = (iy3 + isoRows/2) / isoRows;
+        var sY2 = Math.sin(ny * Math.PI * yFrac2);
+        var z2 = ampZ * sX2 * sY2;
+        var pt2 = project(ix3, iy3, z2);
+        if (iy3 === -isoRows/2) ctxIso.moveTo(pt2.x, pt2.y); else ctxIso.lineTo(pt2.x, pt2.y);
+      }
+      ctxIso.stroke();
+    }
+
+    if (running) requestAnimationFrame(loop);
+  }
+
+  nxSel.onchange = function() {
+    updateDegreesOfFreedomTable(parseInt(nxSel.value, 10), parseInt(nySel.value, 10), parseFloat(tempSlider.value));
+  };
+  nySel.onchange = function() {
+    updateDegreesOfFreedomTable(parseInt(nxSel.value, 10), parseInt(nySel.value, 10), parseFloat(tempSlider.value));
+  };
+  tempSlider.oninput = function() {
+    updateDegreesOfFreedomTable(parseInt(nxSel.value, 10), parseInt(nySel.value, 10), parseFloat(tempSlider.value));
+  };
+
+  updateDegreesOfFreedomTable(2, 2, 4000);
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Blackbody Cavity Standing Waves & Degrees of Freedom</title>
+  <!--
+    © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+    Vasireddy Venkatadri International Technological University. 
+    Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+  -->
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --accent: #38bdf8;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --purple: #c084fc;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 18px; }
+    .container { max-width: 1280px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    header h1 { font-size: 1.6rem; color: #fff; margin-bottom: 4px; }
+    header p { color: var(--muted); font-size: 0.9rem; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 14px; background: var(--card); border: 1px solid var(--border); padding: 12px 18px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between; }
+    .tool-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+    select, input[type=range] { accent-color: var(--accent); }
+    select { background:#090d16; color:#fff; border:1px solid var(--border); padding:4px 8px; border-radius:4px; cursor:pointer; }
+    .val-pill { background: #090d16; border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; font-family: monospace; color: var(--accent); font-weight: bold; }
+    
+    .btn { background: #0284c7; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 0.82rem; }
+    .btn:hover { background: #0369a1; }
+    .btn-sec { background: #334155; }
+    .btn-sec:hover { background: #475569; }
+
+    /* Live Calculated Degrees of Freedom Summary Banner */
+    .dof-summary-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 768px) { .dof-summary-banner { grid-template-columns: 1fr 1fr; } }
+
+    .dof-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .dof-chip span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
+    .dof-chip strong { font-size: 1.25rem; font-family: monospace; color: #fff; }
+    .dof-chip small { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
+
+    .grid-main { display: grid; grid-template-columns: 1.18fr 0.82fr; gap: 16px; }
+    @media (max-width: 920px) { .grid-main { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .card h2 { font-size: 1.02rem; color: var(--accent); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(51, 65, 85, 0.5); padding-bottom: 8px; }
+    
+    canvas { background: #060911; border: 1px solid var(--border); border-radius: 6px; display: block; width: 100%; height: auto; }
+
+    .legend-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; margin-top: 8px; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+    .mode-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 10px;
+    }
+    .mode-table th { background: #0c1524; color: var(--muted); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .mode-table td { padding: 5px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.4); font-family: monospace; }
+    .mode-table tr.active-row { background: rgba(56, 189, 248, 0.15); color: var(--accent); font-weight: bold; }
+
+    .theory-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-top: 16px; }
+    .theory-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>3D Cavity Standing Waves &amp; Calculated Degrees of Freedom</h1>
+    <p>Live Degree of Freedom Counting: Spatial Modes $(n_x, n_y, n_z)$, Mutually Perpendicular Standing Wave Planes, 2 Polarizations, and Density of States $g(\nu) \propto \nu^2$</p>
+  </header>
+
+  <!-- Live Calculated Degrees of Freedom Summary Banner -->
+  <div class="dof-summary-banner">
+    <div class="dof-chip" style="border-top: 3px solid var(--accent);">
+      <span>Selected 3D Mode</span>
+      <strong id="statModeName" style="color:var(--accent);">(2, 2, 1)</strong>
+      <small>Eigenmode (n<sub>x</sub>, n<sub>y</sub>, n<sub>z</sub>)</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--green);">
+      <span>DoFs per Spatial Mode</span>
+      <strong id="statModeDoF" style="color:var(--green);">4 DoFs</strong>
+      <small>2 Polarizations &times; 2 Quadratic DoFs</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--yellow);">
+      <span>Degeneracy Factor g<sub>n</sub></span>
+      <strong id="statDegen" style="color:var(--yellow);">3-fold</strong>
+      <small>Permutations with same |k|</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--purple);">
+      <span>Cumulative DoFs in Cavity</span>
+      <strong id="statTotalDoFs" style="color:var(--purple);">32 DoFs</strong>
+      <small>Up to selected frequency cutoff</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <label>Mode (n<sub>x</sub>, n<sub>y</sub>, n<sub>z</sub>):</label>
+      <select id="nxSelect">
+        <option value="1">n_x = 1</option>
+        <option value="2" selected>n_x = 2</option>
+        <option value="3">n_x = 3</option>
+        <option value="4">n_x = 4</option>
+      </select>
+      <select id="nySelect">
+        <option value="1">n_y = 1</option>
+        <option value="2" selected>n_y = 2</option>
+        <option value="3">n_y = 3</option>
+        <option value="4">n_y = 4</option>
+      </select>
+      <select id="nzSelect">
+        <option value="1" selected>n_z = 1</option>
+        <option value="2">n_z = 2</option>
+        <option value="3">n_z = 3</option>
+        <option value="4">n_z = 4</option>
+      </select>
+    </div>
+
+    <div class="tool-group">
+      <label for="temp">Cavity T:</label>
+      <input type="range" id="temp" min="1000" max="6000" step="200" value="4000">
+      <span class="val-pill" id="tVal">4000 K</span>
+    </div>
+
+    <div class="tool-group">
+      <label for="speedRange">Speed:</label>
+      <input type="range" id="speedRange" min="0.2" max="2.0" step="0.1" value="0.9">
+      <span class="val-pill" id="spdVal">0.9x</span>
+    </div>
+
+    <div>
+      <button class="btn" id="playBtn">Pause</button>
+      <button class="btn btn-sec" id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <!-- Panel 1: 3D Cavity Field Distribution with 3 Mutually Perpendicular Mid-Planes -->
+    <div class="card">
+      <h2>
+        <span>1. 3D Cavity Field Distribution E(x, y, z, t)</span>
+        <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;" id="wavenumberLabel">|k| = 3.00 (&pi;/L)</span>
+      </h2>
+      <canvas id="canvas3D" width="620" height="420"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#38bdf8;"></span>Positive Field (+E)</span>
+        <span><span class="legend-dot" style="background:#f87171;"></span>Negative Field (&minus;E)</span>
+        <span><span class="legend-dot" style="background:#ffffff; border:1px solid #94a3b8;"></span><b>Nodal Lines (E = 0)</b></span>
+      </div>
+    </div>
+
+    <div>
+      <!-- Panel 2: 3D Volumetric Standing Waves (x, y, z) -->
+      <div class="card">
+        <h2>
+          <span>2. 3D Volumetric Standing Waves (x, y, z)</span>
+          <span style="font-size:0.75rem; color:var(--muted);" id="isoDofTag">&psi;(x,y,z) with n_z Active</span>
+        </h2>
+        <canvas id="canvasIso" width="480" height="180"></canvas>
+      </div>
+
+      <!-- Panel 3: Mode Hierarchy & Degrees of Freedom Table -->
+      <div class="card" style="margin-bottom:0;">
+        <h2>
+          <span>3. Mode Hierarchy &amp; Degrees of Freedom Table</span>
+          <span style="font-size:0.75rem; color:var(--muted);">All Modes up to |k|</span>
+        </h2>
+        <div style="max-height: 190px; overflow-y: auto;">
+          <table class="mode-table">
+            <thead>
+              <tr>
+                <th>(n<sub>x</sub>, n<sub>y</sub>, n<sub>z</sub>)</th>
+                <th>|k| &times; (L/&pi;)</th>
+                <th>Degeneracy</th>
+                <th>Total DoFs</th>
+                <th>Total Energy</th>
+              </tr>
+            </thead>
+            <tbody id="modeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory-card">
+    <h3>Exact Degree of Freedom Mathematical Formulas for 3D Cavities</h3>
+    <ul style="margin: 8px 0 8px 20px;">
+      <li>
+        <b>1. Spatial Standing Waves in 3D:</b> Inside a cubic cavity $[L \times L \times L]$, boundary conditions require $k_x = \frac{n_x\pi}{L}$, $k_y = \frac{n_y\pi}{L}$, $k_z = \frac{n_z\pi}{L}$. Unlike 1D points or 2D lines, <b>nodes in 3D are entire 2D planes</b> slicing through the cavity where $E = 0$ constantly. The volume partitions into $n_x \times n_y \times n_z$ oscillating cells.
+      </li>
+      <li>
+        <b>2. Polarization Multiplicity ($g_{\text{pol}} = 2$):</b> Electromagnetic radiation is transverse ($\nabla \cdot \vec{E} = 0$). For every wavevector $\vec{k}$, there are <b>two independent orthogonal transverse polarization states</b> ($\vec{\varepsilon}_1 \perp \vec{\varepsilon}_2 \perp \vec{k}$).
+      </li>
+      <li>
+        <b>3. Total Degrees of Freedom per Mode ($f = 4$):</b> Each polarization acts as a harmonic oscillator with 2 quadratic energy terms (electric energy $\propto \iiint \varepsilon_0 E^2 dV$ and magnetic energy $\propto \iiint \mu_0^{-1} B^2 dV$). Therefore, <b>each spatial triple $(n_x, n_y, n_z)$ accounts for exactly $2 \times 2 = 4$ degrees of freedom</b>, carrying an average thermal energy of:
+        <br>
+        <span style="font-family: monospace; color:var(--green); display:block; text-align:center; margin: 4px 0;">
+          \langle E_{(n_x, n_y, n_z)} \rangle = 4 \times \left(\frac{1}{2} k_B T\right) = 2 k_B T
+        </span>
+      </li>
+      <li>
+        <b>4. 3D Mode Density Derivation:</b> Valid modes occupy the positive octant ($1/8$th) of a sphere of radius $k$ in 3D $k$-space:
+        <br>
+        <span style="font-family: monospace; color:var(--accent); display:block; text-align:center; margin: 4px 0;">
+          N(k) = 2 \times \frac{1}{8} \times \frac{\frac{4}{3}\pi k^3}{(\pi / L)^3} = \frac{V k^3}{3\pi^2} \implies g(\nu)d\nu = \frac{8\pi \nu^2}{c^3} V d\nu
+        </span>
+        This quadratic growth $g(\nu) \propto \nu^2$ is the root of the ultraviolet catastrophe when classical equipartition assigns constant energy per degree of freedom across all frequencies.
+      </li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.</p>
+    <p style="margin-top: 4px;">Mobile: <a href="tel:9000837556" style="color:var(--accent);">9000837556</a> | Email: <a href="mailto:sureshbabuchallari@gmail.com" style="color:var(--accent);">sureshbabuchallari@gmail.com</a></p>
+  </footer>
+</div>
+
+<script>
+  var kB = 1.380649e-23;
+  var eV = 1.602176634e-19;
+
+  var nxSel = document.getElementById('nxSelect');
+  var nySel = document.getElementById('nySelect');
+  var nzSel = document.getElementById('nzSelect');
+  var tempSlider = document.getElementById('temp');
+  var tVal = document.getElementById('tVal');
+  var speedSlider = document.getElementById('speedRange');
+  var spdVal = document.getElementById('spdVal');
+  var playBtn = document.getElementById('playBtn');
+  var resetBtn = document.getElementById('resetBtn');
+
+  var c3D = document.getElementById('canvas3D');
+  var ctx3D = c3D.getContext('2d');
+  var cIso = document.getElementById('canvasIso');
+  var ctxIso = cIso.getContext('2d');
+
+  var running = true;
+  var phase = 0;
+
+  playBtn.onclick = function() {
+    running = !running;
+    playBtn.innerText = running ? 'Pause' : 'Resume';
+    if (running) requestAnimationFrame(loop);
+  };
+
+  resetBtn.onclick = function() {
+    phase = 0;
+  };
+
+  function updateDegreesOfFreedomTable(curNx, curNy, curNz, T) {
+    var kT_eV = (kB * T) / eV;
+    var curK2 = curNx * curNx + curNy * curNy + curNz * curNz;
+    var tbody = document.getElementById('modeTableBody');
+    tbody.innerHTML = '';
+
+    var modes = [];
+    for (var x = 1; x <= 4; x++) {
+      for (var y = 1; y <= 4; y++) {
+        for (var z = 1; z <= 4; z++) {
+          var k2 = x * x + y * y + z * z;
+          modes.push({ nx: x, ny: y, nz: z, k2: k2, kVal: Math.sqrt(k2) });
+        }
+      }
+    }
+
+    modes.sort(function(a, b) { return a.kVal - b.kVal; });
+
+    var totalCumulativeDoFs = 0;
+
+    for (var m = 0; m < modes.length; m++) {
+      var item = modes[m];
+      var isCurrent = (item.nx === curNx && item.ny === curNy && item.nz === curNz);
+
+      // Permutation degeneracy
+      var u = [item.nx, item.ny, item.nz].sort();
+      var degen = 1;
+      if (u[0] !== u[1] && u[1] !== u[2]) {
+        degen = 6;
+      } else if (u[0] === u[1] && u[1] === u[2]) {
+        degen = 1;
+      } else {
+        degen = 3;
+      }
+
+      var modeDoFs = 4; // 2 polarizations x 2 quadratic coordinates = 4 DoFs
+      if (item.k2 <= curK2) {
+        totalCumulativeDoFs += modeDoFs;
+      }
+
+      var tr = document.createElement('tr');
+      if (isCurrent) tr.className = 'active-row';
+
+      tr.innerHTML = 
+        '<td>(' + item.nx + ', ' + item.ny + ', ' + item.nz + ')</td>' +
+        '<td>' + item.kVal.toFixed(2) + '</td>' +
+        '<td>' + degen + '-fold</td>' +
+        '<td>4 DoFs</td>' +
+        '<td>' + (2 * kT_eV).toFixed(3) + ' eV</td>';
+      tbody.appendChild(tr);
+    }
+
+    document.getElementById('statModeName').innerText = '(' + curNx + ', ' + curNy + ', ' + curNz + ')';
+    var uCur = [curNx, curNy, curNz].sort();
+    var curDegen = (uCur[0] !== uCur[1] && uCur[1] !== uCur[2]) ? '6-fold' : (uCur[0] === uCur[2] ? '1 (Unique)' : '3-fold');
+    document.getElementById('statDegen').innerText = curDegen;
+    document.getElementById('statTotalDoFs').innerText = totalCumulativeDoFs + ' DoFs';
+  }
+
+  function loop() {
+    var nx = parseInt(nxSel.value, 10);
+    var ny = parseInt(nySel.value, 10);
+    var nz = parseInt(nzSel.value, 10);
+    var T = parseFloat(tempSlider.value);
+    var speed = parseFloat(speedSlider.value);
+
+    tVal.innerText = T + ' K';
+    spdVal.innerText = speed.toFixed(1) + 'x';
+
+    var kNorm = Math.sqrt(nx * nx + ny * ny + nz * nz);
+    document.getElementById('wavenumberLabel').innerText = '|k| = ' + kNorm.toFixed(2) + ' (\u03c0/L)';
+
+    var omega = 1.2 * kNorm / Math.sqrt(3);
+    if (running) {
+      phase += 0.04 * speed * omega;
+    }
+
+    var cosVal = Math.cos(phase);
+
+    // =========================================================
+    // 1. RENDER 3D CAVITY FIELD DISTRIBUTION (Panel 1)
+    // 3 Vibrant Mutually Perpendicular Planes with High-Contrast Colors
+    // =========================================================
+    var w2 = c3D.width;
+    var h2 = c3D.height;
+    ctx3D.clearRect(0, 0, w2, h2);
+
+    var ox = w2 * 0.50;
+    var oy = h2 * 0.70;
+    var sX = 135;
+    var sY = 105;
+    var sZ = 160;
+
+    function p3(x, y, z) {
+      return {
+        x: ox + (x - y) * (sX * 0.866),
+        y: oy + (x + y) * (sY * 0.5) - z * sZ
+      };
+    }
+
+    var corners = [
+      p3(0, 0, 0), p3(1, 0, 0), p3(1, 1, 0), p3(0, 1, 0), // bottom
+      p3(0, 0, 1), p3(1, 0, 1), p3(1, 1, 1), p3(0, 1, 1)  // top
+    ];
+
+    // Background walls
+    ctx3D.fillStyle = '#0c1527';
+    ctx3D.beginPath();
+    ctx3D.moveTo(corners[0].x, corners[0].y); ctx3D.lineTo(corners[1].x, corners[1].y);
+    ctx3D.lineTo(corners[5].x, corners[5].y); ctx3D.lineTo(corners[4].x, corners[4].y);
+    ctx3D.closePath(); ctx3D.fill();
+
+    ctx3D.beginPath();
+    ctx3D.moveTo(corners[0].x, corners[0].y); ctx3D.lineTo(corners[3].x, corners[3].y);
+    ctx3D.lineTo(corners[7].x, corners[7].y); ctx3D.lineTo(corners[4].x, corners[4].y);
+    ctx3D.closePath(); ctx3D.fill();
+
+    var gridN = 28;
+
+    function getCellColor(val) {
+      if (val > 0) {
+        var v = Math.min(1, val);
+        var r = Math.floor(56 * (0.3 + 0.7 * v));
+        var g = Math.floor(189 * (0.3 + 0.7 * v));
+        var b = Math.floor(248 * (0.3 + 0.7 * v));
+        var a = 0.45 + 0.50 * v;
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a.toFixed(3) + ')';
+      } else {
+        var v2 = Math.min(1, -val);
+        var r2 = Math.floor(239 * (0.3 + 0.7 * v2));
+        var g2 = Math.floor(68 * (0.3 + 0.7 * v2));
+        var b2 = Math.floor(68 * (0.3 + 0.7 * v2));
+        var a2 = 0.45 + 0.50 * v2;
+        return 'rgba(' + r2 + ',' + g2 + ',' + b2 + ',' + a2.toFixed(3) + ')';
+      }
+    }
+
+    // PLANE 1: Back-Left Wall (XZ Plane at y = 0)
+    for (var ix1 = 0; ix1 < gridN; ix1++) {
+      var x1 = ix1 / gridN, x2 = (ix1 + 1) / gridN;
+      var xm1 = (x1 + x2) * 0.5;
+      var sX1 = Math.sin(nx * Math.PI * xm1);
+
+      for (var iz1 = 0; iz1 < gridN; iz1++) {
+        var z1 = iz1 / gridN, z2 = (iz1 + 1) / gridN;
+        var zm1 = (z1 + z2) * 0.5;
+        var sZ1 = Math.sin(nz * Math.PI * zm1);
+
+        var val1 = sX1 * sZ1 * cosVal;
+        ctx3D.fillStyle = getCellColor(val1);
+
+        var pA = p3(x1, 0, z1), pB = p3(x2, 0, z1), pC = p3(x2, 0, z2), pD = p3(x1, 0, z2);
+        ctx3D.beginPath();
+        ctx3D.moveTo(pA.x, pA.y); ctx3D.lineTo(pB.x, pB.y); ctx3D.lineTo(pC.x, pC.y); ctx3D.lineTo(pD.x, pD.y);
+        ctx3D.closePath();
+        ctx3D.fill();
+      }
+    }
+
+    // PLANE 2: Back-Right Wall (YZ Plane at x = 0, strictly 90° to Plane 1)
+    for (var iy2 = 0; iy2 < gridN; iy2++) {
+      var y1b = iy2 / gridN, y2b = (iy2 + 1) / gridN;
+      var ym2 = (y1b + y2b) * 0.5;
+      var sY2 = Math.sin(ny * Math.PI * ym2);
+
+      for (var iz2 = 0; iz2 < gridN; iz2++) {
+        var z1b = iz2 / gridN, z2b = (iz2 + 1) / gridN;
+        var zm2 = (z1b + z2b) * 0.5;
+        var sZ2 = Math.sin(nz * Math.PI * zm2);
+
+        var val2 = sY2 * sZ2 * cosVal;
+        ctx3D.fillStyle = getCellColor(val2);
+
+        var qA = p3(0, y1b, z1b), qB = p3(0, y2b, z1b), qC = p3(0, y2b, z2b), qD = p3(0, y1b, z2b);
+        ctx3D.beginPath();
+        ctx3D.moveTo(qA.x, qA.y); ctx3D.lineTo(qB.x, qB.y); ctx3D.lineTo(qC.x, qC.y); ctx3D.lineTo(qD.x, qD.y);
+        ctx3D.closePath();
+        ctx3D.fill();
+      }
+    }
+
+    // PLANE 3: Floor Wall (XY Plane at z = 0, strictly 90° to both walls)
+    for (var ix3 = 0; ix3 < gridN; ix3++) {
+      var x1c = ix3 / gridN, x2c = (ix3 + 1) / gridN;
+      var xm3 = (x1c + x2c) * 0.5;
+      var sX3 = Math.sin(nx * Math.PI * xm3);
+
+      for (var iy3 = 0; iy3 < gridN; iy3++) {
+        var y1c = iy3 / gridN, y2c = (iy3 + 1) / gridN;
+        var ym3 = (y1c + y2c) * 0.5;
+        var sY3 = Math.sin(ny * Math.PI * ym3);
+
+        var val3 = sX3 * sY3 * cosVal;
+        ctx3D.fillStyle = getCellColor(val3);
+
+        var rA = p3(x1c, y1c, 0), rB = p3(x2c, y1c, 0), rC = p3(x2c, y2c, 0), rD = p3(x1c, y2c, 0);
+        ctx3D.beginPath();
+        ctx3D.moveTo(rA.x, rA.y); ctx3D.lineTo(rB.x, rB.y); ctx3D.lineTo(rC.x, rC.y); ctx3D.lineTo(rD.x, rD.y);
+        ctx3D.closePath();
+        ctx3D.fill();
+      }
+    }
+
+    // BOLD WHITE NODAL LINES ON ALL 3 PLANES
+    ctx3D.strokeStyle = '#ffffff';
+    ctx3D.lineWidth = 1.8;
+    if (ctx3D.setLineDash) ctx3D.setLineDash([5, 4]);
+
+    for (var kx1 = 1; kx1 < nx; kx1++) {
+      var n_x = kx1 / nx;
+      var lA = p3(n_x, 0, 0), lB = p3(n_x, 0, 1);
+      ctx3D.beginPath(); ctx3D.moveTo(lA.x, lA.y); ctx3D.lineTo(lB.x, lB.y); ctx3D.stroke();
+    }
+    for (var kz1 = 1; kz1 < nz; kz1++) {
+      var n_z = kz1 / nz;
+      var mA = p3(0, 0, n_z), mB = p3(1, 0, n_z);
+      ctx3D.beginPath(); ctx3D.moveTo(mA.x, mA.y); ctx3D.lineTo(mB.x, mB.y); ctx3D.stroke();
+    }
+
+    for (var ky2 = 1; ky2 < ny; ky2++) {
+      var n_y = ky2 / ny;
+      var uA = p3(0, n_y, 0), uB = p3(0, n_y, 1);
+      ctx3D.beginPath(); ctx3D.moveTo(uA.x, uA.y); ctx3D.lineTo(uB.x, uB.y); ctx3D.stroke();
+    }
+    for (var kz2 = 1; kz2 < nz; kz2++) {
+      var n_z2 = kz2 / nz;
+      var vA = p3(0, 0, n_z2), vB = p3(0, 1, n_z2);
+      ctx3D.beginPath(); ctx3D.moveTo(vA.x, vA.y); ctx3D.lineTo(vB.x, vB.y); ctx3D.stroke();
+    }
+
+    for (var kx3 = 1; kx3 < nx; kx3++) {
+      var n_x3 = kx3 / nx;
+      var wA = p3(n_x3, 0, 0), wB = p3(n_x3, 1, 0);
+      ctx3D.beginPath(); ctx3D.moveTo(wA.x, wA.y); ctx3D.lineTo(wB.x, wB.y); ctx3D.stroke();
+    }
+    for (var ky3 = 1; ky3 < ny; ky3++) {
+      var n_y3 = ky3 / ny;
+      var zA = p3(0, n_y3, 0), zB = p3(1, n_y3, 0);
+      ctx3D.beginPath(); ctx3D.moveTo(zA.x, zA.y); ctx3D.lineTo(zB.x, zB.y); ctx3D.stroke();
+    }
+    if (ctx3D.setLineDash) ctx3D.setLineDash([]);
+
+    // Cube Wireframe
+    ctx3D.strokeStyle = '#475569';
+    ctx3D.lineWidth = 1.8;
+    // Bottom square
+    ctx3D.beginPath();
+    ctx3D.moveTo(corners[0].x, corners[0].y); ctx3D.lineTo(corners[1].x, corners[1].y);
+    ctx3D.lineTo(corners[2].x, corners[2].y); ctx3D.lineTo(corners[3].x, corners[3].y);
+    ctx3D.closePath(); ctx3D.stroke();
+    // Top square
+    ctx3D.beginPath();
+    ctx3D.moveTo(corners[4].x, corners[4].y); ctx3D.lineTo(corners[5].x, corners[5].y);
+    ctx3D.lineTo(corners[6].x, corners[6].y); ctx3D.lineTo(corners[7].x, corners[7].y);
+    ctx3D.closePath(); ctx3D.stroke();
+
+    for (var v = 0; v < 4; v++) {
+      ctx3D.beginPath();
+      ctx3D.moveTo(corners[v].x, corners[v].y);
+      ctx3D.lineTo(corners[v+4].x, corners[v+4].y);
+      ctx3D.stroke();
+    }
+
+    ctx3D.fillStyle = '#94a3b8';
+    ctx3D.font = '11px monospace';
+    var pX = p3(1.10, 0, 0); ctx3D.fillText('x = L_x', pX.x, pX.y);
+    var pY = p3(0, 1.10, 0); ctx3D.fillText('y = L_y', pY.x, pY.y);
+    var pZ = p3(0, 0, 1.08); ctx3D.fillText('z = L_z', pZ.x, pZ.y);
+
+    // =========================================================
+    // 2. RENDER TRUE 3D VOLUMETRIC ISOMETRIC VIEW (Panel 2)
+    // Multi-Layered Standing Wave Volume governed by (nx, ny, nz)
+    // =========================================================
+    var wIso = cIso.width;
+    var hIso = cIso.height;
+    ctxIso.clearRect(0, 0, wIso, hIso);
+
+    var isoCols = 20;
+    var isoRows = 14;
+    var originX = wIso * 0.5;
+    var scaleX = 8.5;
+    var scaleY = 4.4;
+    var ampZ = 28 * cosVal;
+
+    // Number of z-layers across the 3D cavity volume
+    var numZLayers = Math.max(3, nz + 1);
+
+    function projectVol(px_i, py_i, zFloor, localDisp) {
+      var baseScreenY = hIso * 0.78 - zFloor * 55;
+      return {
+        x: originX + (px_i - py_i) * scaleX,
+        y: baseScreenY + (px_i + py_i) * scaleY - localDisp
+      };
+    }
+
+    // Render stacked 3D spatial layers from bottom (z=0) to top (z=1)
+    for (var lz = 1; lz <= numZLayers - 1; lz++) {
+      var zFrac = lz / numZLayers;
+      var sZ_layer = Math.sin(nz * Math.PI * zFrac);
+      
+      var layerSign = sZ_layer * cosVal;
+      var strokeCol = layerSign >= 0 
+        ? 'rgba(56, 189, 248, ' + (0.20 + 0.65 * Math.abs(sZ_layer)).toFixed(2) + ')'
+        : 'rgba(248, 113, 113, ' + (0.20 + 0.65 * Math.abs(sZ_layer)).toFixed(2) + ')';
+      
+      ctxIso.lineWidth = (lz === Math.floor(numZLayers / 2)) ? 1.4 : 1.0;
+
+      // Draw X-grid lines for this z-layer
+      for (var iy_idx = -isoRows/2; iy_idx <= isoRows/2; iy_idx += 2) {
+        var yFrac_v = (iy_idx + isoRows/2) / isoRows;
+        var sY_v = Math.sin(ny * Math.PI * yFrac_v);
+
+        ctxIso.strokeStyle = strokeCol;
+        ctxIso.beginPath();
+        for (var ix_idx = -isoCols/2; ix_idx <= isoCols/2; ix_idx++) {
+          var xFrac_v = (ix_idx + isoCols/2) / isoCols;
+          var sX_v = Math.sin(nx * Math.PI * xFrac_v);
+          var localZ = ampZ * sX_v * sY_v * sZ_layer;
+          var pt = projectVol(ix_idx, iy_idx, zFrac, localZ);
+          if (ix_idx === -isoCols/2) ctxIso.moveTo(pt.x, pt.y); else ctxIso.lineTo(pt.x, pt.y);
+        }
+        ctxIso.stroke();
+      }
+
+      // Draw Y-grid lines for this z-layer
+      for (var ix_idx2 = -isoCols/2; ix_idx2 <= isoCols/2; ix_idx2 += 2) {
+        var xFrac_v2 = (ix_idx2 + isoCols/2) / isoCols;
+        var sX_v2 = Math.sin(nx * Math.PI * xFrac_v2);
+
+        ctxIso.strokeStyle = strokeCol;
+        ctxIso.beginPath();
+        for (var iy_idx2 = -isoRows/2; iy_idx2 <= isoRows/2; iy_idx2++) {
+          var yFrac_v2 = (iy_idx2 + isoRows/2) / isoRows;
+          var sY_v2 = Math.sin(ny * Math.PI * yFrac_v2);
+          var localZ2 = ampZ * sX_v2 * sY_v2 * sZ_layer;
+          var pt2 = projectVol(ix_idx2, iy_idx2, zFrac, localZ2);
+          if (iy_idx2 === -isoRows/2) ctxIso.moveTo(pt2.x, pt2.y); else ctxIso.lineTo(pt2.x, pt2.y);
+        }
+        ctxIso.stroke();
+      }
+
+      // Draw subtle z-level label
+      var labelPt = projectVol(isoCols/2 + 1, -isoRows/2, zFrac, 0);
+      ctxIso.fillStyle = '#64748b';
+      ctxIso.font = '9px monospace';
+      ctxIso.fillText('z=' + zFrac.toFixed(2), labelPt.x, labelPt.y);
+    }
+
+    if (running) requestAnimationFrame(loop);
+  }
+
+  nxSel.onchange = function() {
+    updateDegreesOfFreedomTable(parseInt(nxSel.value, 10), parseInt(nySel.value, 10), parseInt(nzSel.value, 10), parseFloat(tempSlider.value));
+  };
+  nySel.onchange = function() {
+    updateDegreesOfFreedomTable(parseInt(nxSel.value, 10), parseInt(nySel.value, 10), parseInt(nzSel.value, 10), parseFloat(tempSlider.value));
+  };
+  nzSel.onchange = function() {
+    updateDegreesOfFreedomTable(parseInt(nxSel.value, 10), parseInt(nySel.value, 10), parseInt(nzSel.value, 10), parseFloat(tempSlider.value));
+  };
+  tempSlider.oninput = function() {
+    updateDegreesOfFreedomTable(parseInt(nxSel.value, 10), parseInt(nySel.value, 10), parseInt(nzSel.value, 10), parseFloat(tempSlider.value));
+  };
+
+  updateDegreesOfFreedomTable(2, 2, 1, 4000);
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

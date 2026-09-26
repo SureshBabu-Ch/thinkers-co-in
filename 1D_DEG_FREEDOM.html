@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>1D Blackbody Cavity Standing Waves & Degrees of Freedom</title>
+  <!--
+    © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+    Vasireddy Venkatadri International Technological University. 
+    Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+  -->
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --accent: #38bdf8;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --purple: #c084fc;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 18px; }
+    .container { max-width: 1280px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    header h1 { font-size: 1.6rem; color: #fff; margin-bottom: 4px; }
+    header p { color: var(--muted); font-size: 0.9rem; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 14px; background: var(--card); border: 1px solid var(--border); padding: 12px 18px; border-radius: 8px; margin-bottom: 16px; align-items: center; justify-content: space-between; }
+    .tool-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+    select, input[type=range] { accent-color: var(--accent); }
+    select { background:#090d16; color:#fff; border:1px solid var(--border); padding:4px 8px; border-radius:4px; cursor:pointer; }
+    .val-pill { background: #090d16; border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; font-family: monospace; color: var(--accent); font-weight: bold; }
+    
+    .btn { background: #0284c7; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 0.82rem; }
+    .btn:hover { background: #0369a1; }
+    .btn-sec { background: #334155; }
+    .btn-sec:hover { background: #475569; }
+
+    /* Live Calculated Degrees of Freedom Summary Banner */
+    .dof-summary-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 768px) { .dof-summary-banner { grid-template-columns: 1fr 1fr; } }
+
+    .dof-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .dof-chip span { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; display: block; margin-bottom: 4px; }
+    .dof-chip strong { font-size: 1.25rem; font-family: monospace; color: #fff; }
+    .dof-chip small { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 3px; }
+
+    .grid-main { display: grid; grid-template-columns: 1.18fr 0.82fr; gap: 16px; }
+    @media (max-width: 920px) { .grid-main { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .card h2 { font-size: 1.02rem; color: var(--accent); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(51, 65, 85, 0.5); padding-bottom: 8px; }
+    
+    canvas { background: #060911; border: 1px solid var(--border); border-radius: 6px; display: block; width: 100%; height: auto; }
+
+    .legend-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.8rem; margin-top: 8px; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+    .mode-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 10px;
+    }
+    .mode-table th { background: #0c1524; color: var(--muted); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .mode-table td { padding: 5px 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.4); font-family: monospace; }
+    .mode-table tr.active-row { background: rgba(56, 189, 248, 0.15); color: var(--accent); font-weight: bold; }
+
+    .theory-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5; margin-top: 16px; }
+    .theory-card h3 { color: var(--accent); margin-bottom: 6px; font-size: 0.95rem; }
+
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>1D Cavity Standing Waves &amp; Calculated Degrees of Freedom</h1>
+    <p>Live Degree of Freedom Counting: Spatial Mode $(n)$, Discrete Nodal Points, 2 Quadratic Coordinates, and Constant Density of States $g(\nu) = \text{const}$</p>
+  </header>
+
+  <!-- Live Calculated Degrees of Freedom Summary Banner -->
+  <div class="dof-summary-banner">
+    <div class="dof-chip" style="border-top: 3px solid var(--accent);">
+      <span>Selected 1D Mode</span>
+      <strong id="statModeName" style="color:var(--accent);">n = 2</strong>
+      <small>Eigenmode (n)</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--green);">
+      <span>DoFs per Spatial Mode</span>
+      <strong id="statModeDoF" style="color:var(--green);">2 DoFs</strong>
+      <small>1 Electric (T) + 1 Magnetic (V)</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--yellow);">
+      <span>Degeneracy Factor g<sub>n</sub></span>
+      <strong id="statDegen" style="color:var(--yellow);">1 (Non-Degenerate)</strong>
+      <small>No permutation degeneracy in 1D</small>
+    </div>
+    <div class="dof-chip" style="border-top: 3px solid var(--purple);">
+      <span>Cumulative DoFs in Cavity</span>
+      <strong id="statTotalDoFs" style="color:var(--purple);">4 DoFs</strong>
+      <small>Up to selected mode threshold</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <label>Mode Harmonic (n):</label>
+      <select id="nSelect">
+        <option value="1">n = 1 (Fundamental, &lambda; = 2L)</option>
+        <option value="2" selected>n = 2 (2nd Harmonic, &lambda; = L)</option>
+        <option value="3">n = 3 (3rd Harmonic, &lambda; = 2L/3)</option>
+        <option value="4">n = 4 (4th Harmonic, &lambda; = L/2)</option>
+        <option value="5">n = 5 (5th Harmonic, &lambda; = 2L/5)</option>
+        <option value="6">n = 6 (6th Harmonic, &lambda; = L/3)</option>
+      </select>
+    </div>
+
+    <div class="tool-group">
+      <label for="temp">Cavity T:</label>
+      <input type="range" id="temp" min="1000" max="6000" step="200" value="4000">
+      <span class="val-pill" id="tVal">4000 K</span>
+    </div>
+
+    <div class="tool-group">
+      <label for="speedRange">Speed:</label>
+      <input type="range" id="speedRange" min="0.2" max="2.0" step="0.1" value="0.9">
+      <span class="val-pill" id="spdVal">0.9x</span>
+    </div>
+
+    <div>
+      <button class="btn" id="playBtn">Pause</button>
+      <button class="btn btn-sec" id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <!-- Panel 1: Orthogonal Transverse Electromagnetic Standing Wave E perp B perp k -->
+    <div class="card">
+      <h2>
+        <span>1. 1D Cavity Field Distribution E(x, t)</span>
+        <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;" id="wavenumberLabel">k = 2.00 (&pi;/L)</span>
+      </h2>
+      <canvas id="canvas1D" width="620" height="420"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#38bdf8;"></span><b>Electric Field E<sub>y</sub>(x, t)</b> (Vertical Plane &perp; x)</span>
+        <span><span class="legend-dot" style="background:#fbbf24;"></span><b>Magnetic Field B<sub>z</sub>(x, t)</b> (Horizontal Plane &perp; E)</span>
+        <span><span class="legend-dot" style="background:#ef4444;"></span><b>E-Nodal Points (E = 0)</b></span>
+        <span style="color:#64748b; font-size:0.75rem; margin-left:auto;">Transverse Vector EM Wave (E &perp; B &perp; k)</span>
+      </div>
+    </div>
+
+    <div>
+      <!-- Panel 2: 1D Transverse Mechanical & Phase Space Vibration -->
+      <div class="card">
+        <h2>
+          <span>2. Mechanical Dipole &amp; Energy Exchange</span>
+          <span style="font-size:0.75rem; color:var(--muted);" id="isoDofTag">Active DoF: E = kT</span>
+        </h2>
+        <canvas id="canvasEnergy" width="480" height="180"></canvas>
+      </div>
+
+      <!-- Panel 3: 1D Mode Hierarchy & Degrees of Freedom Table -->
+      <div class="card" style="margin-bottom:0;">
+        <h2>
+          <span>3. Mode Hierarchy &amp; Degrees of Freedom Table</span>
+          <span style="font-size:0.75rem; color:var(--muted);">All Modes up to current n</span>
+        </h2>
+        <div style="max-height: 190px; overflow-y: auto;">
+          <table class="mode-table">
+            <thead>
+              <tr>
+                <th>Mode (n)</th>
+                <th>k &times; (L/&pi;)</th>
+                <th>Degeneracy</th>
+                <th>Total DoFs</th>
+                <th>Total Energy</th>
+              </tr>
+            </thead>
+            <tbody id="modeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory-card">
+    <h3>Exact Degree of Freedom Mathematical Formulas for 1D Cavities</h3>
+    <ul style="margin: 8px 0 8px 20px;">
+      <li>
+        <b>1. Spatial Standing Waves in 1D:</b> Inside a 1D cavity of length $L$ bounded by conducting walls at $x = 0$ and $x = L$, the spatial boundary conditions require $k = \frac{n\pi}{L}$ with $n \in \{1, 2, 3, \dots\}$. Unlike 2D lines or 3D planes, <b>nodes in 1D are zero-dimensional discrete points</b> where $E = 0$ constantly.
+      </li>
+      <li>
+        <b>2. Non-Degeneracy in 1D ($g_n = 1$):</b> Each wavenumber $k$ corresponds uniquely to a single spatial harmonic. There are no permutation degeneracies in 1D, meaning every spatial state is strictly non-degenerate.
+      </li>
+      <li>
+        <b>3. Quadratic Degrees of Freedom per Mode ($f = 2$):</b> Each standing wave mode acts as an autonomous harmonic oscillator. Its Hamiltonian contains 2 quadratic terms: electric field energy ($U_E \propto \int E^2 dx$) and magnetic field energy ($U_B \propto \int B^2 dx$). By equipartition, each quadratic coordinate receives $\frac{1}{2}k_B T$, yielding:
+        <br>
+        <span style="font-family: monospace; color:var(--green); display:block; text-align:center; margin: 4px 0;">
+          \langle E_n \rangle = 2 \times \left(\frac{1}{2} k_B T\right) = k_B T
+        </span>
+      </li>
+      <li>
+        <b>4. 1D Density of States ($g(\nu) = \text{constant}$):</b> The number of spatial modes with frequency below $\nu$ is $N(\nu) = \frac{2L}{c} \nu$. Differentiating yields a flat, frequency-independent density of states:
+        <br>
+        <span style="font-family: monospace; color:var(--accent); display:block; text-align:center; margin: 4px 0;">
+          g_{1\text{D}}(\nu) d\nu = \frac{2L}{c} d\nu = \text{constant}
+        </span>
+        Comparing dimensions: $g_{1\text{D}}(\nu) \propto \nu^0$ (constant), $g_{2\text{D}}(\nu) \propto \nu^1$ (linear), and $g_{3\text{D}}(\nu) \propto \nu^2$ (quadratic ultraviolet catastrophe).
+      </li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.</p>
+    <p style="margin-top: 4px;">Mobile: <a href="tel:9000837556" style="color:var(--accent);">9000837556</a> | Email: <a href="mailto:sureshbabuchallari@gmail.com" style="color:var(--accent);">sureshbabuchallari@gmail.com</a></p>
+  </footer>
+</div>
+
+<script>
+  var kB = 1.380649e-23;
+  var eV = 1.602176634e-19;
+
+  var nSel = document.getElementById('nSelect');
+  var tempSlider = document.getElementById('temp');
+  var tVal = document.getElementById('tVal');
+  var speedSlider = document.getElementById('speedRange');
+  var spdVal = document.getElementById('spdVal');
+  var playBtn = document.getElementById('playBtn');
+  var resetBtn = document.getElementById('resetBtn');
+
+  var c1D = document.getElementById('canvas1D');
+  var ctx1D = c1D.getContext('2d');
+  var cE = document.getElementById('canvasEnergy');
+  var ctxE = cE.getContext('2d');
+
+  var running = true;
+  var phase = 0;
+  var energyHistory = [];
+  var maxHistory = 130;
+
+  playBtn.onclick = function() {
+    running = !running;
+    playBtn.innerText = running ? 'Pause' : 'Resume';
+    if (running) requestAnimationFrame(loop);
+  };
+
+  resetBtn.onclick = function() {
+    phase = 0;
+    energyHistory = [];
+  };
+
+  function updateDegreesOfFreedomTable(curN, T) {
+    var kT_eV = (kB * T) / eV;
+    var tbody = document.getElementById('modeTableBody');
+    tbody.innerHTML = '';
+
+    var totalCumulativeDoFs = 0;
+    var maxN = 6;
+
+    for (var m = 1; m <= maxN; m++) {
+      var isCurrent = (m === curN);
+      var modeDoFs = 2; // 2 quadratic coordinates (Electric + Magnetic)
+      if (m <= curN) {
+        totalCumulativeDoFs += modeDoFs;
+      }
+
+      var tr = document.createElement('tr');
+      if (isCurrent) tr.className = 'active-row';
+
+      tr.innerHTML = 
+        '<td>n = ' + m + '</td>' +
+        '<td>' + m.toFixed(2) + '</td>' +
+        '<td>1 (Unique)</td>' +
+        '<td>2 DoFs</td>' +
+        '<td>' + kT_eV.toFixed(3) + ' eV</td>';
+      tbody.appendChild(tr);
+    }
+
+    document.getElementById('statModeName').innerText = 'n = ' + curN;
+    document.getElementById('statDegen').innerText = '1 (Non-Degenerate)';
+    document.getElementById('statTotalDoFs').innerText = totalCumulativeDoFs + ' DoFs';
+  }
+
+  function loop() {
+    var n = parseInt(nSel.value, 10);
+    var T = parseFloat(tempSlider.value);
+    var speed = parseFloat(speedSlider.value);
+
+    tVal.innerText = T + ' K';
+    spdVal.innerText = speed.toFixed(1) + 'x';
+    document.getElementById('wavenumberLabel').innerText = 'k = ' + n.toFixed(2) + ' (\u03c0/L)';
+
+    var omega = 1.4 * n;
+    if (running) {
+      phase += 0.035 * speed * omega;
+    }
+
+    var cosVal = Math.cos(phase);
+    var sinVal = Math.sin(phase);
+
+    var kT_eV = (kB * T) / eV;
+    var uElectric = kT_eV * (cosVal * cosVal);
+    var uMagnetic = kT_eV * (sinVal * sinVal);
+
+    if (running) {
+      energyHistory.push({ e: uElectric, b: uMagnetic });
+      if (energyHistory.length > maxHistory) energyHistory.shift();
+    }
+
+    // =========================================================
+    // 1. RENDER 1D ORTHOGONAL ELECTROMAGNETIC WAVE E perp B
+    // =========================================================
+    var w1 = c1D.width;
+    var h1 = c1D.height;
+    ctx1D.clearRect(0, 0, w1, h1);
+
+    var midY = h1 / 2;
+    var padX = 60;
+    var cavL = w1 - 2 * padX;
+    var maxAmp = 115 * Math.sqrt(T / 4000);
+
+    // Conducting boundary walls (x=0 and x=L)
+    ctx1D.fillStyle = '#334155';
+    ctx1D.fillRect(padX - 10, midY - 140, 10, 280);
+    ctx1D.fillRect(padX + cavL, midY - 140, 10, 280);
+
+    // Wall Labels
+    ctx1D.fillStyle = '#94a3b8';
+    ctx1D.font = '12px monospace';
+    ctx1D.fillText('x = 0 (Wall)', padX - 55, midY + 160);
+    ctx1D.fillText('x = L (Wall)', padX + cavL - 30, midY + 160);
+
+    // Central propagation axis (X-axis)
+    ctx1D.strokeStyle = 'rgba(71, 85, 105, 0.5)';
+    ctx1D.lineWidth = 1.2;
+    ctx1D.beginPath();
+    ctx1D.moveTo(padX, midY); ctx1D.lineTo(padX + cavL, midY);
+    ctx1D.stroke();
+
+    // Upper and lower static envelope bounds for Electric Field (Cyan Dashed)
+    ctx1D.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+    ctx1D.lineWidth = 1.5;
+    if (ctx1D.setLineDash) ctx1D.setLineDash([4, 4]);
+
+    ctx1D.beginPath();
+    for (var px = 0; px <= cavL; px += 2) {
+      var envTop = midY - maxAmp * Math.sin(n * Math.PI * (px / cavL));
+      if (px === 0) ctx1D.moveTo(padX + px, envTop); else ctx1D.lineTo(padX + px, envTop);
+    }
+    ctx1D.stroke();
+
+    ctx1D.beginPath();
+    for (var px2 = 0; px2 <= cavL; px2 += 2) {
+      var envBot = midY + maxAmp * Math.sin(n * Math.PI * (px2 / cavL));
+      if (px2 === 0) ctx1D.moveTo(padX + px2, envBot); else ctx1D.lineTo(padX + px2, envBot);
+    }
+    ctx1D.stroke();
+    if (ctx1D.setLineDash) ctx1D.setLineDash([]);
+
+    // Oblique perspective angle for B-field (Z-axis perpendicular to E-field):
+    var bAngle = Math.PI * 0.20; // ~36 degrees perspective tilt
+    var bCos = Math.cos(bAngle);
+    var bSin = Math.sin(bAngle);
+    var maxAmpB = maxAmp * 0.72; // Magnetic field visual scaling
+
+    // 1. Magnetic Field Static Envelope (Gold Dashed, along oblique Z plane)
+    ctx1D.strokeStyle = 'rgba(251, 191, 36, 0.28)';
+    ctx1D.lineWidth = 1.3;
+    if (ctx1D.setLineDash) ctx1D.setLineDash([4, 4]);
+
+    ctx1D.beginPath();
+    for (var pEnvB = 0; pEnvB <= cavL; pEnvB += 2) {
+      var envValB = maxAmpB * Math.cos(n * Math.PI * (pEnvB / cavL));
+      var ex1 = padX + pEnvB + envValB * bCos;
+      var ey1 = midY + envValB * bSin;
+      if (pEnvB === 0) ctx1D.moveTo(ex1, ey1); else ctx1D.lineTo(ex1, ey1);
+    }
+    ctx1D.stroke();
+
+    ctx1D.beginPath();
+    for (var pEnvB2 = 0; pEnvB2 <= cavL; pEnvB2 += 2) {
+      var envValB2 = -maxAmpB * Math.cos(n * Math.PI * (pEnvB2 / cavL));
+      var ex2 = padX + pEnvB2 + envValB2 * bCos;
+      var ey2 = midY + envValB2 * bSin;
+      if (pEnvB2 === 0) ctx1D.moveTo(ex2, ey2); else ctx1D.lineTo(ex2, ey2);
+    }
+    ctx1D.stroke();
+    if (ctx1D.setLineDash) ctx1D.setLineDash([]);
+
+    // 2. Magnetic Field B(x, t) Vector Arrows & Stems (Perpendicular to E!)
+    var numArrowsB = n * 8;
+    for (var bIdx = 0; bIdx <= numArrowsB; bIdx++) {
+      var arrXB = padX + (bIdx / numArrowsB) * cavL;
+      var curValB = maxAmpB * Math.cos(n * Math.PI * ((arrXB - padX) / cavL)) * sinVal;
+      if (Math.abs(curValB) > 5) {
+        var tipXB = arrXB + curValB * bCos;
+        var tipYB = midY + curValB * bSin;
+        drawObliqueArrow(ctx1D, arrXB, midY, tipXB, tipYB, '#fbbf24');
+      }
+    }
+
+    // 3. Magnetic Field B(x, t) Wave Spine (Gold Line)
+    ctx1D.strokeStyle = '#fbbf24';
+    ctx1D.lineWidth = 2.8;
+    ctx1D.beginPath();
+    for (var pxB = 0; pxB <= cavL; pxB += 2) {
+      var curB = maxAmpB * Math.cos(n * Math.PI * (pxB / cavL)) * sinVal;
+      var pbx = padX + pxB + curB * bCos;
+      var pby = midY + curB * bSin;
+      if (pxB === 0) ctx1D.moveTo(pbx, pby); else ctx1D.lineTo(pbx, pby);
+    }
+    ctx1D.stroke();
+
+    // 4. Electric Field E(x, t) Vector Arrows & Stems (Vertical, along Y)
+    var numArrowsE = n * 8;
+    for (var a = 1; a < numArrowsE; a++) {
+      var arrXE = padX + (a / numArrowsE) * cavL;
+      var curValE = maxAmp * Math.sin(n * Math.PI * ((arrXE - padX) / cavL)) * cosVal;
+      if (Math.abs(curValE) > 6) {
+        drawVerticalArrow(ctx1D, arrXE, midY, arrXE, midY - curValE, '#38bdf8');
+      }
+    }
+
+    // 5. Electric Field E(x, t) Wave Spine (Vibrant Cyan Line)
+    ctx1D.strokeStyle = '#38bdf8';
+    ctx1D.lineWidth = 3.2;
+    ctx1D.beginPath();
+    for (var pxE = 0; pxE <= cavL; pxE += 2) {
+      var dispE = maxAmp * Math.sin(n * Math.PI * (pxE / cavL)) * cosVal;
+      var pyE = midY - dispE;
+      if (pxE === 0) ctx1D.moveTo(padX + pxE, pyE); else ctx1D.lineTo(padX + pxE, pyE);
+    }
+    ctx1D.stroke();
+
+    // Discrete Nodal Points for Electric Field (E = 0 for all t)
+    for (var nd = 0; nd <= n; nd++) {
+      var nodeX = padX + (nd / n) * cavL;
+      ctx1D.fillStyle = '#ef4444';
+      ctx1D.beginPath();
+      ctx1D.arc(nodeX, midY, 5, 0, 2 * Math.PI);
+      ctx1D.fill();
+
+      ctx1D.fillStyle = '#fca5a5';
+      ctx1D.font = 'bold 11px monospace';
+      ctx1D.fillText('Node', nodeX - 14, midY - 14);
+    }
+
+    // =========================================================
+    // 2. RENDER ENERGY SLOSHING / DOFS (Panel 2)
+    // =========================================================
+    var wE = cE.width;
+    var hE = cE.height;
+    ctxE.clearRect(0, 0, wE, hE);
+
+    var padL = 40, padR = 15, padT = 15, padB = 25;
+    var plotWE = wE - padL - padR;
+    var plotHE = hE - padT - padB;
+
+    // Grid lines
+    ctxE.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+    ctxE.lineWidth = 1;
+    ctxE.beginPath();
+    ctxE.moveTo(padL, padT); ctxE.lineTo(wE - padR, padT);
+    ctxE.moveTo(padL, padT + plotHE / 2); ctxE.lineTo(wE - padR, padT + plotHE / 2);
+    ctxE.moveTo(padL, padT + plotHE); ctxE.lineTo(wE - padR, padT + plotHE);
+    ctxE.stroke();
+
+    ctxE.fillStyle = '#94a3b8';
+    ctxE.font = '10px monospace';
+    ctxE.fillText('kT', 12, padT + 4);
+    ctxE.fillText('½kT', 8, padT + plotHE / 2 + 4);
+    ctxE.fillText('0', 16, padT + plotHE + 4);
+
+    // Theoretical 1/2 kT line
+    ctxE.strokeStyle = 'rgba(192, 132, 252, 0.6)';
+    if (ctxE.setLineDash) ctxE.setLineDash([3, 3]);
+    var halfY = padT + plotHE / 2;
+    ctxE.beginPath(); ctxE.moveTo(padL, halfY); ctxE.lineTo(wE - padR, halfY); ctxE.stroke();
+    if (ctxE.setLineDash) ctxE.setLineDash([]);
+
+    // Electric Energy trace (Cyan)
+    ctxE.strokeStyle = '#38bdf8';
+    ctxE.lineWidth = 2;
+    ctxE.beginPath();
+    for (var j = 0; j < energyHistory.length; j++) {
+      var pxTr = padL + (j / maxHistory) * plotWE;
+      var pyTr = padT + plotHE - (energyHistory[j].e / (kT_eV || 1)) * plotHE;
+      if (j === 0) ctxE.moveTo(pxTr, pyTr); else ctxE.lineTo(pxTr, pyTr);
+    }
+    ctxE.stroke();
+
+    // Magnetic Energy trace (Yellow)
+    ctxE.strokeStyle = '#fbbf24';
+    ctxE.lineWidth = 2;
+    ctxE.beginPath();
+    for (var k = 0; k < energyHistory.length; k++) {
+      var pxTr2 = padL + (k / maxHistory) * plotWE;
+      var pyTr2 = padT + plotHE - (energyHistory[k].b / (kT_eV || 1)) * plotHE;
+      if (k === 0) ctxE.moveTo(pxTr2, pyTr2); else ctxE.lineTo(pxTr2, pyTr2);
+    }
+    ctxE.stroke();
+
+    if (running) requestAnimationFrame(loop);
+  }
+
+  function drawVerticalArrow(ctx, x1, y1, x2, y2, color) {
+    var head = 5;
+    var dy = y2 - y1;
+    var sign = dy >= 0 ? 1 : -1;
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1, y2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y2);
+    ctx.lineTo(x1 - head, y2 - sign * head);
+    ctx.lineTo(x1 + head, y2 - sign * head);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawObliqueArrow(ctx, x1, y1, x2, y2, color) {
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 4) return;
+    var head = 5;
+    var angle = Math.atan2(dy, dx);
+
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.45)';
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - head * Math.cos(angle - Math.PI / 6), y2 - head * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - head * Math.cos(angle + Math.PI / 6), y2 - head * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  nSel.onchange = function() {
+    updateDegreesOfFreedomTable(parseInt(nSel.value, 10), parseFloat(tempSlider.value));
+  };
+  tempSlider.oninput = function() {
+    updateDegreesOfFreedomTable(parseInt(nSel.value, 10), parseFloat(tempSlider.value));
+  };
+
+  updateDegreesOfFreedomTable(2, 4000);
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

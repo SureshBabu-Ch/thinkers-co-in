@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+  Vasireddy Venkatadri International Technological University. 
+  Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2 Molecular Orbital Theory Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* slate-900 */
+            color: #f8fafc;
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Custom Range Slider Styling */
+        .slider-container input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        .slider-container input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+            border: 2px solid #fff;
+            transition: transform 0.1s;
+        }
+        
+        .slider-container input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .slider-container input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: linear-gradient(to right, #94a3b8, #38bdf8);
+            border-radius: 3px;
+        }
+
+        .slider-container input[type=range]:focus {
+            outline: none;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen box-border bg-slate-900 p-2 md:p-4">
+
+    <header class="flex-none mb-4 bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-400 tracking-tight">
+                H₂ Formation: Molecular Orbital Theory
+            </h1>
+            <p class="text-slate-400 text-sm mt-1">Linear Combination of Atomic Orbitals (LCAO)</p>
+        </div>
+        
+        <div id="statusBadge" class="px-4 py-2 rounded-lg font-semibold text-sm border border-slate-600 bg-slate-700 text-slate-300 transition-colors duration-300">
+            Isolated Atoms (No Interaction)
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row gap-4 min-h-[500px] pb-4">
+        
+        <!-- Left Panel: Spatial Visualization -->
+        <div class="flex-1 relative border border-slate-700 rounded-xl shadow-inner bg-slate-800/80 flex flex-col overflow-hidden min-h-[300px]">
+            <div class="absolute top-4 left-4 z-10 pointer-events-none">
+                <div class="font-bold text-sky-300 drop-shadow-md text-xl">Spatial Visualization</div>
+                <div class="text-xs text-slate-400 mt-1 max-w-sm">Observe orbital merging and node formation.</div>
+            </div>
+            <div class="absolute inset-0 mt-12">
+                <canvas id="spatialCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Panel: Energy Level Diagram -->
+        <div class="flex-1 relative border border-slate-700 rounded-xl shadow-inner bg-slate-800/80 flex flex-col overflow-hidden min-h-[300px]">
+            <div class="absolute top-4 left-4 z-10 pointer-events-none">
+                <div class="font-bold text-emerald-400 drop-shadow-md text-xl">Energy Level (MO) Diagram</div>
+            </div>
+            <div class="absolute inset-0 mt-12">
+                <canvas id="energyCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+    
+    <section class="flex-none bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-lg mb-4">
+        <div class="slider-container flex flex-col w-full max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-2">
+                <label for="distanceSlider" class="text-sm font-semibold text-slate-300 tracking-wide uppercase">Internuclear Distance</label>
+                <span class="text-xs text-slate-400">Drag to bring atoms closer</span>
+            </div>
+            <!-- Slider controls distance between nuclei -->
+            <input type="range" id="distanceSlider" min="0" max="100" value="0" step="0.5">
+            <div class="flex justify-between text-xs text-slate-500 mt-2 font-mono">
+                <span>Far (Isolated)</span>
+                <span>Equilibrium Bond Length</span>
+            </div>
+        </div>
+    </section>
+
+    <footer class="flex-none text-center py-4 border-t border-slate-800 text-xs text-slate-400">
+        <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University. Mobile: 9000837556, Email: sureshbabuchallari@gmail.com</p>
+    </footer>
+
+    <script>
+        const spatialCanvas = document.getElementById('spatialCanvas');
+        const energyCanvas = document.getElementById('energyCanvas');
+        const ctxSpatial = spatialCanvas.getContext('2d');
+        const ctxEnergy = energyCanvas.getContext('2d');
+        const distanceSlider = document.getElementById('distanceSlider');
+        const statusBadge = document.getElementById('statusBadge');
+
+        // Simulation State
+        let progress = 0; // 0 = Far, 1 = Equilibrium
+        const INTERACTION_THRESHOLD = 0.20; // At 20%, orbitals begin to mix and split
+        
+        // Visualization Colors
+        const COLOR_BONDING = "rgba(56, 189, 248,";    // Sky blue (Positive phase)
+        const COLOR_ANTIBONDING_L = "rgba(56, 189, 248,"; // Sky blue (Positive phase)
+        const COLOR_ANTIBONDING_R = "rgba(244, 63, 94,";  // Rose red (Negative phase)
+        const COLOR_NODE = "rgba(255, 255, 255, 0.6)";
+
+        // Handle canvas resizing for crisp resolution
+        function resizeCanvases() {
+            const dpr = window.devicePixelRatio || 1;
+            
+            [spatialCanvas, energyCanvas].forEach(canvas => {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                const ctx = canvas.getContext('2d');
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            });
+            
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+
+        distanceSlider.addEventListener('input', (e) => {
+            progress = parseFloat(e.target.value) / 100;
+            
+            const isInteracting = progress > INTERACTION_THRESHOLD;
+            
+            // Update UI status badge based on interaction phase
+            if (!isInteracting) {
+                statusBadge.textContent = "Isolated Atoms (No Interaction)";
+                statusBadge.className = "px-4 py-2 rounded-lg font-semibold text-sm border border-slate-600 bg-slate-700 text-slate-300 transition-colors duration-300";
+            } else if (progress < 0.80) {
+                statusBadge.textContent = "Orbitals Interacting (MOs Forming)";
+                statusBadge.className = "px-4 py-2 rounded-lg font-semibold text-sm border border-amber-500 bg-amber-500/20 text-amber-400 transition-colors duration-300";
+            } else {
+                statusBadge.textContent = "H₂ Molecule Formed (Equilibrium)";
+                statusBadge.className = "px-4 py-2 rounded-lg font-semibold text-sm border border-emerald-500 bg-emerald-500/20 text-emerald-400 transition-colors duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]";
+            }
+            
+            draw();
+        });
+
+        function drawSpatial() {
+            const w = spatialCanvas.clientWidth;
+            const h = spatialCanvas.clientHeight;
+            ctxSpatial.clearRect(0, 0, w, h);
+
+            const centerX = w / 2;
+            const topY = h * 0.28;
+            const bottomY = h * 0.72;
+            
+            // Calculate visual distance based on slider progress
+            const maxDist = w * 0.35;
+            const minDist = w * 0.12;
+            const currentDist = maxDist - (maxDist - minDist) * Math.pow(progress, 0.8);
+            
+            const leftX = centerX - currentDist;
+            const rightX = centerX + currentDist;
+            const radius = Math.min(w, h) * 0.15; // Scaled down slightly to guarantee no clipping with larger text
+            const isInteracting = progress > INTERACTION_THRESHOLD;
+
+            // Draw horizontal dividing line
+            ctxSpatial.beginPath();
+            ctxSpatial.strokeStyle = "rgba(148, 163, 184, 0.2)";
+            ctxSpatial.lineWidth = 1;
+            ctxSpatial.moveTo(20, h * 0.50);
+            ctxSpatial.lineTo(w - 20, h * 0.50);
+            ctxSpatial.stroke();
+
+            // ==========================================
+            // 1. TOP SECTION: ANTI-BONDING (σ*1s)
+            // ==========================================
+            // Only draw anti-bonding orbitals when interaction begins
+            if (isInteracting) {
+                // Fixed positioning near the top to prevent it from ever moving or cutting off
+                drawTextLabel(ctxSpatial, 15, 25, "σ*1s (Anti-bonding MO)", "- Destructive Interference", "#f43f5e");
+                
+                const nodeGap = 4;
+                const activeProgress = (progress - INTERACTION_THRESHOLD) / (1 - INTERACTION_THRESHOLD);
+                const repulsionOffset = radius * 0.25 * activeProgress;
+
+                // Left Atom (Positive Phase - Blue)
+                ctxSpatial.save();
+                ctxSpatial.beginPath();
+                ctxSpatial.rect(0, 0, centerX - nodeGap, h * 0.50);
+                ctxSpatial.clip();
+                drawRadialGradient(ctxSpatial, leftX - repulsionOffset, topY, radius * 1.15, COLOR_ANTIBONDING_L);
+                ctxSpatial.restore();
+
+                // Right Atom (Negative Phase - Red)
+                ctxSpatial.save();
+                ctxSpatial.beginPath();
+                ctxSpatial.rect(centerX + nodeGap, 0, w, h * 0.50);
+                ctxSpatial.clip();
+                drawRadialGradient(ctxSpatial, rightX + repulsionOffset, topY, radius * 1.15, COLOR_ANTIBONDING_R);
+                ctxSpatial.restore();
+
+                // Node Representation
+                ctxSpatial.beginPath();
+                ctxSpatial.setLineDash([6, 6]);
+                ctxSpatial.strokeStyle = COLOR_NODE;
+                ctxSpatial.lineWidth = 2;
+                ctxSpatial.moveTo(centerX, topY - radius * 1.4);
+                ctxSpatial.lineTo(centerX, topY + radius * 1.4);
+                ctxSpatial.stroke();
+                ctxSpatial.setLineDash([]);
+                
+                ctxSpatial.fillStyle = "rgba(255, 255, 255, 0.95)";
+                ctxSpatial.font = "bold 18px Inter";
+                ctxSpatial.textAlign = "center";
+                ctxSpatial.fillText("Node", centerX, topY - radius * 1.4 - 10);
+
+                drawNucleus(ctxSpatial, leftX, topY, "HA");
+                drawNucleus(ctxSpatial, rightX, topY, "HB");
+            } else {
+                // Completely empty top section when far apart
+                ctxSpatial.fillStyle = "#475569"; // Slate 600
+                ctxSpatial.font = "italic 16px Inter";
+                ctxSpatial.textAlign = "center";
+                ctxSpatial.fillText("No interaction yet. Anti-bonding orbitals do not exist.", centerX, topY);
+            }
+
+            // ==========================================
+            // 2. BOTTOM SECTION: BONDING (σ1s)
+            // ==========================================
+            // Fixed positioning just below the horizontal divider
+            if (isInteracting) {
+                drawTextLabel(ctxSpatial, 15, h * 0.50 + 25, "σ1s (Bonding MO)", "- Constructive Interference", "#10b981");
+            } else {
+                drawTextLabel(ctxSpatial, 15, h * 0.50 + 25, "Isolated 1s Atomic Orbitals", "", "#10b981");
+            }
+
+            if (isInteracting) {
+                // Merge orbitals for constructive interference
+                ctxSpatial.beginPath();
+                const ellipseWidth = (currentDist * 2) + (radius * 2);
+                const ellipseHeight = radius * 2.2;
+                
+                const gradient = ctxSpatial.createRadialGradient(centerX, bottomY, 0, centerX, bottomY, ellipseWidth/2);
+                const activeProgress = (progress - INTERACTION_THRESHOLD) / (1 - INTERACTION_THRESHOLD);
+                const densityAlpha = 0.3 + (0.6 * activeProgress);
+                
+                gradient.addColorStop(0, `${COLOR_BONDING} ${densityAlpha})`); 
+                gradient.addColorStop(0.6, `${COLOR_BONDING} ${densityAlpha * 0.5})`);
+                gradient.addColorStop(1, `${COLOR_BONDING} 0)`);
+
+                ctxSpatial.fillStyle = gradient;
+                ctxSpatial.ellipse(centerX, bottomY, ellipseWidth/2, ellipseHeight/2, 0, 0, Math.PI * 2);
+                ctxSpatial.fill();
+                
+                drawRadialGradient(ctxSpatial, leftX, bottomY, radius * 0.8, COLOR_BONDING, 0.4);
+                drawRadialGradient(ctxSpatial, rightX, bottomY, radius * 0.8, COLOR_BONDING, 0.4);
+            } else {
+                // Two separate isolated atomic orbitals
+                drawRadialGradient(ctxSpatial, leftX, bottomY, radius, COLOR_BONDING);
+                drawRadialGradient(ctxSpatial, rightX, bottomY, radius, COLOR_BONDING);
+            }
+
+            drawNucleus(ctxSpatial, leftX, bottomY, "HA");
+            drawNucleus(ctxSpatial, rightX, bottomY, "HB");
+        }
+
+        function drawRadialGradient(ctx, x, y, r, colorBase, alphaMult = 1.0) {
+            ctx.beginPath();
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+            gradient.addColorStop(0, `${colorBase} ${0.8 * alphaMult})`);
+            gradient.addColorStop(0.5, `${colorBase} ${0.3 * alphaMult})`);
+            gradient.addColorStop(1, `${colorBase} 0)`);
+            
+            ctx.fillStyle = gradient;
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawNucleus(ctx, x, y, label) {
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+            
+            ctx.fillStyle = "#cbd5e1"; 
+            ctx.font = "bold 12px Inter";
+            ctx.textAlign = "center";
+            ctx.fillText(label, x, y + 22);
+        }
+
+        function drawTextLabel(ctx, x, y, line1, line2, color) {
+            ctx.fillStyle = color;
+            ctx.font = "600 13px Inter"; // Further reduced size to prevent overlapping
+            ctx.textAlign = "left";
+            ctx.fillText(line1, x, y);
+            if (line2) {
+                ctx.fillText(line2, x, y + 16); // Draw second line below the first
+            }
+        }
+
+        function drawEnergy() {
+            const w = energyCanvas.clientWidth;
+            const h = energyCanvas.clientHeight;
+            ctxEnergy.clearRect(0, 0, w, h);
+
+            const baselineY = h * 0.5;
+            // Max splitting to make the downward/upward slope dramatic
+            const maxSplitting = h * 0.35; 
+            const isInteracting = progress > INTERACTION_THRESHOLD;
+
+            let deltaE = 0;
+            if (isInteracting) {
+                // Calculate dynamic energy drop/rise
+                const activeProgress = (progress - INTERACTION_THRESHOLD) / (1 - INTERACTION_THRESHOLD);
+                deltaE = maxSplitting * Math.pow(activeProgress, 0.9); 
+            }
+
+            const leftX = w * 0.15;
+            const rightX = w * 0.85;
+            const centerX = w * 0.5;
+            const levelWidth = w * 0.14;
+            const moWidth = w * 0.18;
+
+            // Draw Energy Y-Axis
+            ctxEnergy.save();
+            ctxEnergy.beginPath();
+            const axisX = 30;
+            ctxEnergy.strokeStyle = "#64748b";
+            ctxEnergy.lineWidth = 2;
+            ctxEnergy.moveTo(axisX, h - 40);
+            ctxEnergy.lineTo(axisX, 40);
+            // Arrowhead
+            ctxEnergy.lineTo(axisX - 5, 50);
+            ctxEnergy.moveTo(axisX, 40);
+            ctxEnergy.lineTo(axisX + 5, 50);
+            ctxEnergy.stroke();
+            
+            ctxEnergy.fillStyle = "#94a3b8";
+            ctxEnergy.font = "bold 14px Inter";
+            ctxEnergy.translate(axisX - 15, h / 2 + 25);
+            ctxEnergy.rotate(-Math.PI / 2);
+            ctxEnergy.fillText("Energy", 0, 0);
+            ctxEnergy.restore();
+
+            // Y-coordinates for the MOs. +Y is down the canvas.
+            const bondY = baselineY + deltaE;   // Moves DOWN (decreases in energy)
+            const antiY = baselineY - deltaE;   // Moves UP (increases in energy)
+
+            // Correlation Lines and MO Levels (ONLY when interacting)
+            if (isInteracting) {
+                ctxEnergy.beginPath();
+                ctxEnergy.setLineDash([4, 4]);
+                ctxEnergy.strokeStyle = "rgba(148, 163, 184, 0.4)"; 
+                ctxEnergy.lineWidth = 1.5;
+                
+                // Left AO to MOs
+                ctxEnergy.moveTo(leftX + levelWidth/2, baselineY);
+                ctxEnergy.lineTo(centerX - moWidth/2, bondY);
+                ctxEnergy.moveTo(leftX + levelWidth/2, baselineY);
+                ctxEnergy.lineTo(centerX - moWidth/2, antiY);
+                
+                // Right AO to MOs
+                ctxEnergy.moveTo(rightX - levelWidth/2, baselineY);
+                ctxEnergy.lineTo(centerX + moWidth/2, bondY);
+                ctxEnergy.moveTo(rightX - levelWidth/2, baselineY);
+                ctxEnergy.lineTo(centerX + moWidth/2, antiY);
+                ctxEnergy.stroke();
+                ctxEnergy.setLineDash([]);
+
+                drawEnergyLevel(ctxEnergy, centerX, bondY, moWidth, "σ1s", "#10b981", "Bonding"); 
+                drawEnergyLevel(ctxEnergy, centerX, antiY, moWidth, "σ*1s", "#f43f5e", "Anti-bonding");
+            }
+
+            // Atomic Orbitals (Always drawn at baseline)
+            drawEnergyLevel(ctxEnergy, leftX, baselineY, levelWidth, "1s", "#38bdf8", "Atom A");
+            drawEnergyLevel(ctxEnergy, rightX, baselineY, levelWidth, "1s", "#38bdf8", "Atom B");
+
+            if (!isInteracting) {
+                // Isolated atoms: one spin-up electron in each Atomic Orbital
+                drawHalfHeadedArrow(ctxEnergy, leftX, baselineY, "up");
+                drawHalfHeadedArrow(ctxEnergy, rightX, baselineY, "up");
+            } else {
+                // Bonding established: Both electrons pair up in the lower bonding MO
+                
+                // Highlight box around active MO
+                ctxEnergy.fillStyle = "rgba(16, 185, 129, 0.1)";
+                ctxEnergy.fillRect(centerX - moWidth/2 - 15, bondY - 35, moWidth + 30, 65);
+                ctxEnergy.strokeStyle = "rgba(16, 185, 129, 0.3)";
+                ctxEnergy.strokeRect(centerX - moWidth/2 - 15, bondY - 35, moWidth + 30, 65);
+
+                // Spin paired: one up (↿), one down (⇂)
+                drawHalfHeadedArrow(ctxEnergy, centerX - 6, bondY, "up");
+                drawHalfHeadedArrow(ctxEnergy, centerX + 6, bondY, "down");
+            }
+        }
+
+        // Helper function for Energy Levels
+        function drawEnergyLevel(ctx, x, y, width, label, color, subtext) {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.moveTo(x - width/2, y);
+            ctx.lineTo(x + width/2, y);
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.font = "bold 15px Inter";
+            ctx.textAlign = "center";
+            const textYOffset = label.includes("*") ? -15 : 25;
+            ctx.fillText(label, x, y + textYOffset);
+            
+            if (subtext) {
+                ctx.fillStyle = "rgba(148, 163, 184, 0.8)";
+                ctx.font = "11px Inter";
+                const subtextYOffset = label.includes("*") ? -32 : 42;
+                ctx.fillText(subtext, x, y + subtextYOffset);
+            }
+        }
+
+        // Draw correct chemical half-headed arrows (↿ and ⇂)
+        function drawHalfHeadedArrow(ctx, x, y, spin) {
+            ctx.beginPath();
+            ctx.strokeStyle = "#fbbf24"; // Amber 400
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            
+            const shaftLength = 18;
+            const barbWidth = 5;
+            const barbHeight = 6;
+            
+            if (spin === "up") {
+                // Upward half-headed arrow (↿)
+                // Base at y, points UP to y-shaftLength. Barb on the LEFT.
+                ctx.moveTo(x, y); // Bottom
+                ctx.lineTo(x, y - shaftLength); // Top
+                ctx.lineTo(x - barbWidth, y - shaftLength + barbHeight); // Left Barb
+            } else {
+                // Downward half-headed arrow (⇂)
+                // Top at y-shaftLength, points DOWN to y. Barb on the RIGHT.
+                ctx.moveTo(x, y - shaftLength); // Top
+                ctx.lineTo(x, y); // Bottom
+                ctx.lineTo(x + barbWidth, y - barbHeight); // Right Barb
+            }
+            ctx.stroke();
+        }
+
+        function draw() {
+            drawSpatial();
+            drawEnergy();
+        }
+
+        window.onload = () => {
+            // Small timeout ensures CSS Grid/Flexbox dimensions are calculated before drawing
+            setTimeout(() => {
+                resizeCanvases();
+                distanceSlider.dispatchEvent(new Event('input'));
+            }, 50);
+        };
+    </script>
+</body>
+</html>

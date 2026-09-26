@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+  Vasireddy Venkatadri International Technological University. 
+  Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photoelectric Effect Offline Simulator</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --panel-bg: #ffffff;
+            --text-color: #333333;
+            --accent-color: #4CAF50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #111111;
+        }
+        .container {
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%;
+        }
+        canvas {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            border: 1px solid #ccc;
+            width: 100%;
+            max-width: 800px;
+            display: block;
+            margin: 0 auto 20px auto;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .control-group label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+        }
+        .readouts {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 1.1rem;
+            border: 1px solid #ddd;
+        }
+        .readouts span {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Photoelectric Effect Visual Laboratory</h1>
+        
+        <canvas id="simCanvas" width="800" height="400"></canvas>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>
+                    <span>Light Intensity</span>
+                    <span id="intensityVal">50%</span>
+                </label>
+                <input type="range" id="intensity" min="0" max="100" value="50">
+            </div>
+            
+            <div class="control-group">
+                <label>
+                    <span>Frequency (THz)</span>
+                    <span id="freqVal">600 THz</span>
+                </label>
+                <input type="range" id="frequency" min="100" max="1500" value="600">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>Applied Voltage (V)</span>
+                    <span id="voltVal">0.0 V</span>
+                </label>
+                <input type="range" id="voltage" min="-5" max="5" step="0.1" value="0">
+            </div>
+        </div>
+
+        <div class="readouts">
+            <div>Threshold Freq: <span>400 THz</span></div>
+            <div>Ammeter (Current): <span id="currentVal">0.00</span> nA</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Inputs
+        const intensityInput = document.getElementById('intensity');
+        const frequencyInput = document.getElementById('frequency');
+        const voltageInput = document.getElementById('voltage');
+
+        // Labels
+        const intensityVal = document.getElementById('intensityVal');
+        const freqVal = document.getElementById('freqVal');
+        const voltVal = document.getElementById('voltVal');
+        const currentVal = document.getElementById('currentVal');
+
+        // Simulation Constants
+        const CATHODE_X = 600; // Right side
+        const ANODE_X = 200;   // Left side
+        const PLATE_Y = 150;
+        const PLATE_HEIGHT = 100;
+        const LIGHT_X = 400;   // Top middle
+        const LIGHT_Y = 30;
+        const THRESHOLD_FREQ = 400; // THz for simulated metal
+        
+        // State
+        let photons = [];
+        let electrons = [];
+        let currentHitCount = 0;
+        let smoothCurrent = 0;
+
+        // Convert Frequency to Color
+        function getLightColor(f, alpha = 1.0) {
+            if (f < 400) return `rgba(255, 50, 50, ${alpha * 0.8})`; // IR - Dark Red
+            if (f > 800) return `rgba(200, 150, 255, ${alpha * 0.9})`; // UV - Purple/White
+            // Map 400-800 to Red-Violet
+            const hue = 270 - ((f - 400) / 400) * 270;
+            return `hsla(${hue}, 100%, 60%, ${alpha})`;
+        }
+
+        // Generate Particles
+        function updateParticles() {
+            const intensity = parseFloat(intensityInput.value);
+            const frequency = parseFloat(frequencyInput.value);
+            const voltage = parseFloat(voltageInput.value);
+
+            // 1. Spawn Photons based on Intensity
+            if (Math.random() * 100 < intensity * 0.5) {
+                const targetY = PLATE_Y + Math.random() * PLATE_HEIGHT;
+                // Path from Light (400,30) to Cathode (600, targetY)
+                const dx = CATHODE_X - LIGHT_X;
+                const dy = targetY - LIGHT_Y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                photons.push({
+                    x: LIGHT_X,
+                    y: LIGHT_Y,
+                    vx: (dx / dist) * 12,
+                    vy: (dy / dist) * 12,
+                    color: getLightColor(frequency),
+                    active: true
+                });
+            }
+
+            // 2. Update Photons
+            for (let i = photons.length - 1; i >= 0; i--) {
+                let p = photons[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Check collision with inner face of Cathode (Right Plate)
+                if (p.x >= CATHODE_X) {
+                    p.active = false;
+                    photons.splice(i, 1);
+                    
+                    // Photoelectric Emission Logic
+                    if (frequency > THRESHOLD_FREQ) {
+                        // Max Kinetic Energy proportional to frequency above threshold
+                        const maxEk = (frequency - THRESHOLD_FREQ) / 100;
+                        
+                        // Spawn electron strictly on the inner surface
+                        electrons.push({
+                            x: CATHODE_X,
+                            y: p.y,
+                            // Initial velocity (negative because it moves left)
+                            // Randomized slightly for spread, but max speed is bounded
+                            vx: - (Math.random() * 0.2 + 0.8) * Math.sqrt(maxEk) * 2,
+                            vy: (Math.random() - 0.5) * 0.5 // slight vertical spread
+                        });
+                    }
+                }
+            }
+
+            // 3. Update Electrons
+            // Acceleration mapping: a = -voltage * constant
+            // Tuned so V = -5 exactly stops max Ek from f=900 (Ek=5)
+            const accel = -voltage * 0.005; 
+
+            for (let i = electrons.length - 1; i >= 0; i--) {
+                let e = electrons[i];
+                
+                e.vx += accel; // Apply electric field acceleration
+                e.x += e.vx;
+                e.y += e.vy;
+
+                // STRICT BOUNDARY: Hits Anode (Left Plate)
+                if (e.x <= ANODE_X) {
+                    electrons.splice(i, 1);
+                    currentHitCount += 1; // Count for current
+                }
+                // STRICT BOUNDARY: Stopped and pushed back to Cathode (Right Plate)
+                else if (e.x >= CATHODE_X) {
+                    electrons.splice(i, 1);
+                }
+                // Keep within tube vertically
+                else if (e.y < 120 || e.y > 280) {
+                     electrons.splice(i, 1);
+                }
+            }
+        }
+
+        function drawApparatus() {
+            const voltage = parseFloat(voltageInput.value);
+
+            // Draw Tube
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(150, 100, 500, 200, 50);
+            ctx.stroke();
+            
+            // Vacuum Chamber Text Background Label
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.font = 'bold 28px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('VACUUM CHAMBER', 400, 200);
+
+            // Draw Plates
+            ctx.fillStyle = '#666666';
+            // Anode (Left)
+            ctx.fillRect(ANODE_X - 10, PLATE_Y, 10, PLATE_HEIGHT);
+            // Cathode (Right)
+            ctx.fillRect(CATHODE_X, PLATE_Y, 10, PLATE_HEIGHT);
+
+            // Plate Labels & Polarity
+            ctx.fillStyle = '#000000';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            
+            let anodePolarity = voltage > 0 ? '(+)' : (voltage < 0 ? '(-)' : '');
+            let cathodePolarity = voltage > 0 ? '(-)' : (voltage < 0 ? '(+)' : '');
+            
+            ctx.fillText(`ANODE ${anodePolarity}`, ANODE_X - 5, PLATE_Y - 20);
+            ctx.fillText(`CATHODE ${cathodePolarity}`, CATHODE_X + 5, PLATE_Y - 20);
+
+            // Draw Light Source Housing
+            ctx.fillStyle = '#555';
+            ctx.fillRect(LIGHT_X - 30, 0, 60, LIGHT_Y);
+            ctx.beginPath();
+            ctx.arc(LIGHT_X, LIGHT_Y, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Light Beam Glow effect
+            const intensity = parseFloat(intensityInput.value);
+            const freq = parseFloat(frequencyInput.value);
+            if (intensity > 0) {
+                ctx.beginPath();
+                ctx.moveTo(LIGHT_X, LIGHT_Y + 10);
+                ctx.lineTo(CATHODE_X, PLATE_Y);
+                ctx.lineTo(CATHODE_X, PLATE_Y + PLATE_HEIGHT);
+                ctx.closePath();
+                
+                let gradient = ctx.createLinearGradient(LIGHT_X, LIGHT_Y, CATHODE_X, PLATE_Y + 50);
+                let color = getLightColor(freq, intensity / 200);
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+
+            // Draw Circuit Wiring
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            // Left wire
+            ctx.moveTo(ANODE_X - 10, PLATE_Y + 50);
+            ctx.lineTo(80, PLATE_Y + 50);
+            ctx.lineTo(80, 360);
+            ctx.lineTo(350, 360);
+            
+            // Right wire
+            ctx.moveTo(CATHODE_X + 10, PLATE_Y + 50);
+            ctx.lineTo(720, PLATE_Y + 50);
+            ctx.lineTo(720, 360);
+            ctx.lineTo(450, 360);
+            ctx.stroke();
+
+            // Draw Battery/Power Source
+            ctx.fillStyle = '#333';
+            ctx.fillRect(350, 340, 100, 40);
+            ctx.fillStyle = voltage > 0 ? '#ff4444' : (voltage < 0 ? '#4444ff' : '#666');
+            ctx.fillRect(350, 340, 50, 40); // Variable polarity indicator
+            
+            ctx.fillStyle = '#fff';
+            ctx.fillText(voltage > 0 ? '+' : (voltage < 0 ? '-' : ''), 375, 365);
+            ctx.fillText(voltage > 0 ? '-' : (voltage < 0 ? '+' : ''), 425, 365);
+            
+            ctx.fillStyle = '#000';
+            ctx.fillText(`${voltage.toFixed(1)} V`, 400, 395);
+        }
+
+        function drawParticles() {
+            // Draw Photons (Waves/dots)
+            photons.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0; // Reset
+
+            // Draw Electrons
+            ctx.fillStyle = '#0044ff';
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = '#0044ff';
+            electrons.forEach(e => {
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0; // Reset
+        }
+
+        // Ammeter Calculation
+        setInterval(() => {
+            // Smooth the current reading
+            smoothCurrent = smoothCurrent * 0.8 + (currentHitCount * 0.2);
+            currentVal.innerText = smoothCurrent.toFixed(2);
+            currentHitCount = 0; // Reset counter every interval
+        }, 100);
+
+        // Event Listeners for Labels
+        intensityInput.addEventListener('input', e => intensityVal.innerText = `${e.target.value}%`);
+        frequencyInput.addEventListener('input', e => freqVal.innerText = `${e.target.value} THz`);
+        voltageInput.addEventListener('input', e => voltVal.innerText = `${parseFloat(e.target.value).toFixed(1)} V`);
+
+        // Main Loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            updateParticles();
+            drawApparatus();
+            drawParticles();
+
+            requestAnimationFrame(animate);
+        }
+
+        // Start
+        animate();
+    </script>
+
+<footer style="text-align: center; padding: 16px 0; margin-top: 16px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; color: #666666;">
+  <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University. Mobile: 9000837556, Email: sureshbabuchallari@gmail.com</p>
+</footer>
+</body>
+</html>
