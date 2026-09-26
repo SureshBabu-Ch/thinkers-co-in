@@ -7,7 +7,7 @@
         body { margin: 0; font-family: Arial; background-color: #f5f5f5; }
         .header img { width: 100%; }
         
-        /* Modern flexbox menu */
+        /* Modern flexbox menu to align items perfectly */
         .menu { 
             background-color: #34495e; 
             text-align: center; 
@@ -17,7 +17,7 @@
             flex-wrap: wrap; 
             gap: 12px; 
         }
-        .menu button, .dropdown { 
+        .menu button { 
             background: none; 
             border: none; 
             color: white; 
@@ -37,14 +37,6 @@
             margin-top: 2px; 
             line-height: 1.2; 
         }
-        
-        /* Fixed dropdown styling with hover bridge */
-        .dropdown { position: relative; display: inline-block; padding-bottom: 10px; margin-bottom: -10px; }
-        .dropbtn { background: none; border: none; color: white; font-size: 14px; cursor: pointer; padding: 0; }
-        .dropdown-content { display: none; position: absolute; background-color: #2c3e50; min-width: 280px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 10; text-align: left; border-radius: 6px; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 2px; }
-        .dropdown-content a { color: white; padding: 12px 16px; text-decoration: none; display: block; width: 100%; text-align: left; box-sizing: border-box; font-size: 13px; }
-        .dropdown-content a:hover { background-color: #34495e; border-radius: 6px; }
-        .dropdown:hover .dropdown-content { display: block; }
 
         .content { padding: 30px; text-align: center; }
         .tab-content { display: none; }
@@ -66,16 +58,10 @@
             for (let i = 0; i < tabs.length; i++) {
                 tabs[i].classList.remove("active");
             }
-            buttons.forEach(b => {
-                if(!b.classList.contains('dropbtn')) {
-                    b.classList.remove("active-tab");
-                }
-            });
+            buttons.forEach(b => b.classList.remove("active-tab"));
 
             document.getElementById(tabId).classList.add("active");
-            if(btn && !btn.classList.contains('dropbtn')) {
-                btn.classList.add("active-tab");
-            }
+            btn.classList.add("active-tab");
         }
     </script>
 </head>
@@ -87,15 +73,8 @@
 </div>
 
 <div class="menu">
-    <!-- CHEMISTRY MATERIAL DROPDOWN -->
-    <div class="dropdown">
-        <button class="dropbtn">Chemistry Material ▾</button>
-        <div class="dropdown-content">
-            <a href="https://drive.google.com/drive/folders/1eQc0fygRSWxE-5hfBX-AyhuWFOOZr93_?usp=sharing" target="_blank">R26 Applied Chemistry CSE & Allied Branches</a>
-        </div>
-    </div>
-
-    <button class="active-tab" onclick="showTab('r26chem', this)">R26 APPLIED CHEMISTRY<span>(CSE & ALLIED BRANCHES)</span></button>
+    <button class="active-tab" onclick="showTab('chem-mat', this)">Chemistry Material</button>
+    <button onclick="showTab('r26chem', this)">R26 APPLIED CHEMISTRY<span>(CSE & ALLIED BRANCHES)</span></button>
     <button onclick="showTab('chem', this)">Engineering Chemistry</button>
     <button onclick="showTab('physics', this)">Engineering Physics</button>
     <button onclick="showTab('mech', this)">Engineering Mechanics</button>
@@ -108,8 +87,20 @@
 
 <div class="content">
 
+<!-- CHEMISTRY MATERIAL TAB -->
+<div id="chem-mat" class="tab-content active">
+<h2>Chemistry Material</h2>
+<div class="grid">
+<div class="card">
+    <img src="https://i.ytimg.com/vi/ZJSn411gWc8/hqdefault.jpg">
+    <h3>R26 Applied Chemistry CSE & Allied Branches</h3>
+    <a href="https://drive.google.com/drive/folders/1eQc0fygRSWxE-5hfBX-AyhuWFOOZr93_?usp=sharing" target="_blank">Open Drive Folder</a>
+</div>
+</div>
+</div>
+
 <!-- R26 APPLIED CHEMISTRY PLAYLIST TAB -->
-<div id="r26chem" class="tab-content active">
+<div id="r26chem" class="tab-content">
 <h2>R26 APPLIED CHEMISTRY (CSE & ALLIED BRANCHES)</h2>
 <div class="grid">
 <div class="card">
