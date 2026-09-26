@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackbody Radiation Dashboard</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 300px;
+            cursor: pointer;
+        }
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            flex: 1;
+            min-width: 500px;
+        }
+        .chart-title {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        /* SVG Styling */
+        .axis-label { font-size: 12px; font-weight: bold; }
+        .line-planck { fill: none; stroke: #e74c3c; stroke-width: 3px; }
+        .line-rj { fill: none; stroke: #3498db; stroke-width: 3px; stroke-dasharray: 6,6; }
+        .line-kt { fill: none; stroke: #34495e; stroke-width: 2px; stroke-dasharray: 4,4; }
+        .bar-quantum { fill: #3498db; opacity: 0.8; }
+        .marker-line { stroke: #7f8c8d; stroke-width: 1.5px; stroke-dasharray: 4,2; }
+        .marker-text { font-size: 12px; fill: #2c3e50; font-weight: bold; }
+        .legend text { font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Blackbody Radiation Dashboard</h1>
+        <p>Explore the microscopic failure of Equipartition and the macroscopic Ultraviolet Catastrophe.</p>
+    </div>
+
+    <div class="controls">
+        <label for="tempSlider">Temperature: <span id="tempDisplay">5000</span> K</label>
+        <input type="range" id="tempSlider" min="2000" max="10000" step="100" value="5000">
+    </div>
+
+    <div class="dashboard">
+        <!-- Chart 1: Microscopic View -->
+        <div class="chart-container" id="chart1-container">
+            <div class="chart-title">Microscopic: Cavity Mode Energy (Equipartition vs Quantum)</div>
+            <div id="chart1"></div>
+        </div>
+
+        <!-- Chart 2: Macroscopic View -->
+        <div class="chart-container" id="chart2-container">
+            <div class="chart-title">Macroscopic: Spectral Radiance & Ultraviolet Catastrophe</div>
+            <div id="chart2"></div>
+        </div>
+    </div>
+
+    <!-- Copyright Footer Added Here -->
+    <div style="text-align: center; font-size: 11px; margin-top: 30px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; width: 100%; max-width: 1400px;">
+        © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University. Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+    </div>
+
+    <script>
+        // Physical Constants
+        const h = 6.626e-34; // Planck constant (J*s)
+        const c = 3.0e8;     // Speed of light (m/s)
+        const kB = 1.38e-23; // Boltzmann constant (J/K)
+        const b = 2.897e-3;  // Wien's displacement constant (m*K)
+
+        // Setup dimensions
+        const margin = {top: 40, right: 30, bottom: 50, left: 70};
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // --- INIT CHART 1 (Microscopic Bar Chart) ---
+        const svg1 = d3.select("#chart1").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // X scale for Frequency (THz)
+        const x1 = d3.scaleBand().range([0, width]).padding(0.2);
+        // Y scale for Energy (10^-20 J)
+        const y1 = d3.scaleLinear().range([height, 0]);
+
+        // Axes for Chart 1
+        const xAxis1 = svg1.append("g").attr("transform", `translate(0,${height})`);
+        const yAxis1 = svg1.append("g");
+
+        // Labels for Chart 1
+        svg1.append("text").attr("class", "axis-label")
+            .attr("x", width/2).attr("y", height + 40).style("text-anchor", "middle")
+            .text("Mode Frequency ν (THz) → UV is on the right");
+        svg1.append("text").attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -50).attr("x", -height/2).style("text-anchor", "middle")
+            .text("Average Energy per Mode (x 10⁻²⁰ J)");
+
+        // classical line group
+        const classicalLineGroup = svg1.append("g");
+        
+        // --- INIT CHART 2 (Macroscopic Line Chart) ---
+        const svg2 = d3.select("#chart2").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Clip path to prevent RJ curve from drawing outside bounds
+        svg2.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Visible Spectrum Gradient
+        const gradient = svg2.select("defs").append("linearGradient")
+            .attr("id", "visible-spectrum")
+            .attr("x1", "0%").attr("y1", "0%").attr("x2", "100%").attr("y2", "0%");
+        
+        gradient.append("stop").attr("offset", "0%").attr("stop-color", "rgba(0,0,0,0)");
+        gradient.append("stop").attr("offset", "30%").attr("stop-color", "rgba(138, 43, 226, 0.3)"); // Violet (approx 400nm)
+        gradient.append("stop").attr("offset", "37%").attr("stop-color", "rgba(0, 0, 255, 0.3)");   // Blue
+        gradient.append("stop").attr("offset", "45%").attr("stop-color", "rgba(0, 255, 0, 0.3)");   // Green
+        gradient.append("stop").attr("offset", "52%").attr("stop-color", "rgba(255, 255, 0, 0.3)"); // Yellow
+        gradient.append("stop").attr("offset", "60%").attr("stop-color", "rgba(255, 165, 0, 0.3)"); // Orange
+        gradient.append("stop").attr("offset", "70%").attr("stop-color", "rgba(255, 0, 0, 0.3)");   // Red (approx 700nm)
+        gradient.append("stop").attr("offset", "100%").attr("stop-color", "rgba(0,0,0,0)");
+
+        // Background Rect for Visible Spectrum
+        const visBackground = svg2.append("rect")
+            .attr("height", height)
+            .style("fill", "url(#visible-spectrum)");
+
+        // Scales for Chart 2
+        const x2 = d3.scaleLinear().domain([100, 3000]).range([0, width]); // Wavelength in nm
+        const y2 = d3.scaleLinear().range([height, 0]);
+
+        // Axes for Chart 2
+        const xAxis2 = svg2.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x2));
+        const yAxis2 = svg2.append("g");
+
+        // Labels for Chart 2
+        svg2.append("text").attr("class", "axis-label")
+            .attr("x", width/2).attr("y", height + 40).style("text-anchor", "middle")
+            .text("← UV | Wavelength λ (nm) | IR →");
+        svg2.append("text").attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", -50).attr("x", -height/2).style("text-anchor", "middle")
+            .text("Spectral Radiance");
+
+        // Draw groups with clip path
+        const chart2Area = svg2.append("g").attr("clip-path", "url(#clip)");
+        
+        const pathPlanck = chart2Area.append("path").attr("class", "line-planck");
+        const pathRJ = chart2Area.append("path").attr("class", "line-rj");
+        
+        const maxMarker = svg2.append("g");
+        maxMarker.append("line").attr("class", "marker-line").attr("y1", 0).attr("y2", height);
+        maxMarker.append("circle").attr("r", 5).attr("fill", "#e74c3c");
+        const maxText = maxMarker.append("text").attr("class", "marker-text").attr("dx", 8).attr("dy", -10);
+
+        // --- Legends ---
+        const leg1 = svg1.append("g").attr("transform", `translate(${width - 150}, 10)`);
+        leg1.append("line").attr("x1", 0).attr("x2", 20).attr("y1", 0).attr("y2", 0).attr("class", "line-kt");
+        leg1.append("text").attr("x", 25).attr("y", 4).text("Classical (kT)");
+        leg1.append("rect").attr("x", 0).attr("y", 15).attr("width", 20).attr("height", 10).attr("class", "bar-quantum");
+        leg1.append("text").attr("x", 25).attr("y", 25).text("Quantum");
+
+        const leg2 = svg2.append("g").attr("transform", `translate(${width - 180}, 10)`);
+        leg2.append("line").attr("x1", 0).attr("x2", 20).attr("y1", 0).attr("y2", 0).attr("class", "line-planck");
+        leg2.append("text").attr("x", 25).attr("y", 4).text("Planck's Law");
+        leg2.append("line").attr("x1", 0).attr("x2", 20).attr("y1", 20).attr("y2", 20).attr("class", "line-rj");
+        leg2.append("text").attr("x", 25).attr("y", 24).text("Rayleigh-Jeans (Failure)");
+
+
+        // --- UPDATE FUNCTION ---
+        function update(T) {
+            document.getElementById('tempDisplay').textContent = T;
+
+            // --- Update Chart 1 Data (Microscopic) ---
+            const freqData = [];
+            // Frequencies from 50 THz to 1500 THz
+            for (let f = 50; f <= 1500; f += 100) {
+                const nu = f * 1e12; // Convert to Hz
+                const exponent = (h * nu) / (kB * T);
+                // Quantum Energy: h*nu / (e^(h*nu/kT) - 1)
+                const E_quantum = (h * nu) / (Math.exp(exponent) - 1);
+                freqData.push({
+                    freq_THz: f.toString(),
+                    E_quant_scaled: E_quantum * 1e20 // Scale for display
+                });
+            }
+            
+            const E_class_scaled = (kB * T) * 1e20;
+            
+            // Fixed Y domain for Chart 1 based on max temp (10000K) to show the line rising
+            const max_E_class = (kB * 10000) * 1e20;
+            x1.domain(freqData.map(d => d.freq_THz));
+            y1.domain([0, max_E_class * 1.1]);
+
+            xAxis1.call(d3.axisBottom(x1)).selectAll("text").style("text-anchor", "end").attr("dx", "-.8em").attr("dy", ".15em").attr("transform", "rotate(-45)");
+            yAxis1.call(d3.axisLeft(y1));
+
+            // Classical Line
+            classicalLineGroup.selectAll("*").remove();
+            classicalLineGroup.append("line")
+                .attr("class", "line-kt")
+                .attr("x1", 0).attr("x2", width)
+                .attr("y1", y1(E_class_scaled)).attr("y2", y1(E_class_scaled));
+            
+            classicalLineGroup.append("text")
+                .attr("class", "marker-text")
+                .attr("x", width - 10).attr("y", y1(E_class_scaled) - 5)
+                .style("text-anchor", "end")
+                .text(`kT at ${T}K`);
+
+            // Update Bars
+            const bars = svg1.selectAll(".bar").data(freqData);
+            bars.join("rect")
+                .attr("class", "bar bar-quantum")
+                .attr("x", d => x1(d.freq_THz))
+                .attr("width", x1.bandwidth())
+                .attr("y", d => y1(d.E_quant_scaled))
+                .attr("height", d => height - y1(d.E_quant_scaled));
+
+
+            // --- Update Chart 2 Data (Macroscopic) ---
+            const waveData = [];
+            let maxRadiance = 0;
+            const lambdaMax_m = b / T;
+            const lambdaMax_nm = lambdaMax_m * 1e9;
+
+            for (let wl = 100; wl <= 3000; wl += 10) {
+                const lam = wl * 1e-9; // meters
+                
+                // Planck
+                const exponent = (h * c) / (lam * kB * T);
+                let B_planck = 0;
+                if (exponent < 700) { // prevent overflow
+                    B_planck = ((2 * h * c * c) / Math.pow(lam, 5)) * (1 / (Math.exp(exponent) - 1));
+                }
+                
+                // Rayleigh Jeans
+                const B_rj = (2 * c * kB * T) / Math.pow(lam, 4);
+
+                if (B_planck > maxRadiance) maxRadiance = B_planck;
+
+                waveData.push({
+                    wl_nm: wl,
+                    planck: B_planck,
+                    rj: B_rj
+                });
+            }
+
+            // DYNAMIC Y-AXIS SCALING: Lock to the peak of the Planck curve
+            y2.domain([0, maxRadiance * 1.15]);
+            yAxis2.call(d3.axisLeft(y2).tickFormat(d3.format(".1e")));
+
+            // Position Background Spectrum accurately on the X axis
+            // 400nm to 700nm relative to the scale
+            const x400 = Math.max(0, x2(400));
+            const x700 = x2(700);
+            visBackground.attr("x", x400).attr("width", x700 - x400);
+
+            // Generators
+            const lineGenPlanck = d3.line()
+                .x(d => x2(d.wl_nm))
+                .y(d => y2(d.planck));
+            
+            const lineGenRJ = d3.line()
+                .x(d => x2(d.wl_nm))
+                .y(d => y2(d.rj));
+
+            // Update Lines
+            pathPlanck.datum(waveData).attr("d", lineGenPlanck);
+            pathRJ.datum(waveData).attr("d", lineGenRJ);
+
+            // Update Peak Marker (Wien's Law)
+            if (lambdaMax_nm >= 100 && lambdaMax_nm <= 3000) {
+                maxMarker.style("display", null);
+                maxMarker.attr("transform", `translate(${x2(lambdaMax_nm)}, 0)`);
+                maxMarker.select("circle").attr("cy", y2(maxRadiance));
+                maxText.attr("y", y2(maxRadiance)).text(`λ_max = ${Math.round(lambdaMax_nm)} nm`);
+            } else {
+                maxMarker.style("display", "none");
+            }
+        }
+
+        // Event listener for slider
+        d3.select("#tempSlider").on("input", function() {
+            update(+this.value);
+        });
+
+        // Initial draw
+        update(5000);
+    </script>
+</body>
+</html>
