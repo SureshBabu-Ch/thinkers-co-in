@@ -6,16 +6,42 @@
     <style>
         body { margin: 0; font-family: Arial; background-color: #f5f5f5; }
         .header img { width: 100%; }
-        .menu { background-color: #34495e; text-align: center; padding: 12px; font-size: 0; }
-        .menu button, .dropdown { display: inline-block; vertical-align: middle; }
-        .menu button { background: none; border: none; color: white; margin: 6px 8px; font-size: 14px; cursor: pointer; }
-        .menu button.active-tab { text-decoration: underline; font-weight: bold; }
-        .menu button span { display: block; font-size: 10px; color: #bdc3c7; margin-top: 2px; line-height: 1.2; }
+        
+        /* Modern flexbox menu to align items perfectly without trailing space */
+        .menu { 
+            background-color: #34495e; 
+            text-align: center; 
+            padding: 12px; 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+        }
+        .menu button, .dropdown { 
+            background: none; 
+            border: none; 
+            color: white; 
+            margin: 0; 
+            font-size: 14px; 
+            cursor: pointer; 
+            vertical-align: middle; 
+        }
+        .menu button.active-tab { 
+            text-decoration: underline; 
+            font-weight: bold; 
+        }
+        .menu button span { 
+            display: block; 
+            font-size: 10px; 
+            color: #bdc3c7; 
+            margin-top: 2px; 
+            line-height: 1.2; 
+        }
         
         /* Dropdown styling */
-        .dropdown { position: relative; display: inline-block; margin: 6px 8px; }
+        .dropdown { position: relative; display: inline-block; }
         .dropbtn { background: none; border: none; color: white; font-size: 14px; cursor: pointer; padding: 0; }
-        .dropdown-content { display: none; position: absolute; background-color: #2c3e50; min-width: 250px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 10; text-align: left; border-radius: 6px; top: 100%; left: 50%; transform: translateX(-50%); }
+        .dropdown-content { display: none; position: absolute; background-color: #2c3e50; min-width: 280px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 10; text-align: left; border-radius: 6px; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 8px; }
         .dropdown-content a { color: white; padding: 12px 16px; text-decoration: none; display: block; width: 100%; text-align: left; box-sizing: border-box; font-size: 13px; }
         .dropdown-content a:hover { background-color: #34495e; border-radius: 6px; }
         .dropdown:hover .dropdown-content { display: block; }
