@@ -13,11 +13,12 @@
         .tab-content { display: none; }
         .active { display: block; }
         .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; }
-        .card { width: 260px; background: white; border-radius: 12px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); transition: 0.3s; }
+        .card { width: 260px; background: white; border-radius: 12px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); transition: 0.3s; display: flex; flex-direction: column; justify-content: space-between; text-align: left; }
         .card:hover { transform: scale(1.05); }
         .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; }
         .card h3 { font-size: 16px; margin: 10px 0; }
-        .card a { text-decoration: none; color: white; background-color: #e74c3c; padding: 8px 12px; border-radius: 6px; display: inline-block; }
+        .card p { font-size: 13px; color: #666; margin: 5px 0 15px 0; flex-grow: 1; }
+        .card a { text-decoration: none; color: white; background-color: #e74c3c; padding: 8px 12px; border-radius: 6px; display: inline-block; text-align: center; }
         .footer { background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin-top: 20px; }
     </style>
 
@@ -146,20 +147,68 @@ onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/zVmoZzfjiaM/hqdefaul
 <div id="simulations" class="tab-content">
 <h2>Interactive Simulations</h2>
 <div class="grid">
-<div class="card" style="width: 320px;">
-    <h3 style="color: #2c3e50; margin-top: 5px;">Blackbody Radiation Dashboard</h3>
-    <p style="font-size: 13px; color: #666; text-align: left; margin: 10px 0 15px 0;">
-        Explore cavity mode energy, quantum vs. classical equipartition, Planck's Law, Wien's displacement shift, and the Ultraviolet Catastrophe.
-    </p>
-    <a href="Blackbody_Radiation.html" target="_blank">Launch Simulation</a>
-</div>
+
+    <div class="card">
+        <h3>1D Degrees of Freedom</h3>
+        <p>Explore quantum particle in a 1D box energy levels and wavefunctions.</p>
+        <a href="1D_DEG_FREEDOM.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>2D Degrees of Freedom</h3>
+        <p>Visualize degenerate energy states and quantum confinement in two dimensions.</p>
+        <a href="2D_DEG_FREEDOM.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>3D Degrees of Freedom</h3>
+        <p>Examine quantum states, degeneracy, and spatial distribution in a 3D box.</p>
+        <a href="3D_DEG_FREEDOM.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>Intensity & Frequency</h3>
+        <p>Analyze the relationship between electromagnetic wave intensity, frequency, and energy.</p>
+        <a href="INTENSITY_AND_FREQUENCY.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>LCAO Model</h3>
+        <p>Interactive Linear Combination of Atomic Orbitals forming bonding and antibonding molecular orbitals.</p>
+        <a href="LCAO.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>Molecular Orbital Theory</h3>
+        <p>Explore molecular energy level diagrams and electron configurations.</p>
+        <a href="MO_THEORY.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>Photoelectric Effect</h3>
+        <p>Investigate photon threshold frequency, work function, and electron kinetic energy.</p>
+        <a href="PHOTOELECTRIC_EFFECT.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>Stefan-Boltzmann Law</h3>
+        <p>Examine total emissive power scaling proportionally with the fourth power of temperature.</p>
+        <a href="STEFAN_BOLTZMANN_LAW.html" target="_blank">Launch Simulation</a>
+    </div>
+
+    <div class="card">
+        <h3>Wien's Displacement Law</h3>
+        <p>Observe how the peak blackbody emission wavelength shifts inversely with temperature.</p>
+        <a href="WIEN'S_DISPLACEMENT_LAW.html" target="_blank">Launch Simulation</a>
+    </div>
+
 </div>
 </div>
 
 </div>
 
 <div class="footer">
-<p>© 2026 Thinkers | All Rights Reserved</p>
+<p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University. Mobile: 9000837556, Email: sureshbabuchallari@gmail.com</p>
 </div>
 
 </body>
