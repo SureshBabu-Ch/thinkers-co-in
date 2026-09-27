@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+  Vasireddy Venkatadri International Technological University. 
+  Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+-->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Law of Equipartition of Energy Interactive Simulation</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --accent: #38bdf8;
+      --trans-col: #38bdf8;
+      --rot-col: #34d399;
+      --vib-k-col: #fbbf24;
+      --vib-p-col: #f87171;
+      --tot-col: #c084fc;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+    }
+
+    .container {
+      max-width: 1260px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    header h1 {
+      font-size: 1.65rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    /* Live Energy Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    .stat-card span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-card strong {
+      font-size: 1.25rem;
+      font-family: monospace;
+      color: #fff;
+    }
+
+    .stat-card small {
+      font-size: 0.74rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 12px 18px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+    }
+
+    select, input[type=range] {
+      accent-color: var(--accent);
+    }
+
+    select {
+      background: #090d16;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 5px;
+      outline: none;
+      font-size: 0.88rem;
+    }
+
+    .val-pill {
+      background: #090d16;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: var(--accent);
+      font-weight: bold;
+      min-width: 65px;
+      text-align: center;
+    }
+
+    .btn {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background 0.15s ease;
+    }
+
+    .btn:hover { background: #0369a1; }
+    .btn-sec { background: #334155; }
+    .btn-sec:hover { background: #475569; }
+
+    /* Main Dual Canvas Grid */
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .grid-main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 1.02rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      padding-bottom: 8px;
+    }
+
+    canvas {
+      background: #050811;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .theory-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .theory-card h3 {
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .theory-card ul {
+      margin-left: 20px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Law of Equipartition of Energy Simulation</h1>
+    <p>Dynamic Thermal Microstates: Partitioning &frac12;kT per Quadratic Degree of Freedom across Translation, Rotation, and Vibration</p>
+  </header>
+
+  <!-- Live Degrees of Freedom Metrics -->
+  <div class="summary-grid">
+    <div class="stat-card" style="border-top: 3px solid var(--trans-col);">
+      <span>Translational DoFs</span>
+      <strong id="transDofVal">3 &times; (&frac12;kT)</strong>
+      <small id="transEVal">1.500 kT</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid var(--rot-col);">
+      <span>Rotational DoFs</span>
+      <strong id="rotDofVal">2 &times; (&frac12;kT)</strong>
+      <small id="rotEVal">1.000 kT</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid var(--vib-p-col);">
+      <span>Vibrational Coordinates</span>
+      <strong id="vibDofVal">2 &times; (&frac12;kT)</strong>
+      <small id="vibEVal">1.000 kT (Kin + Pot)</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid var(--tot-col);">
+      <span>Total Average Energy &lang;E&rang;</span>
+      <strong id="totEVal" style="color:var(--tot-col);">3.50 kT</strong>
+      <small id="molarCvVal">C<sub>v</sub> = 3.50 R (7/2 R)</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <label><b>Molecular Geometry:</b></label>
+      <select id="gasType">
+        <option value="mono">Monoatomic (He, Ar) — 3 Trans</option>
+        <option value="diatomic_rigid">Diatomic Rigid (O₂, N₂ at 300K) — 3 Trans + 2 Rot</option>
+        <option value="diatomic_vib" selected>Diatomic Vibrating (High T) — 3 Trans + 2 Rot + 2 Vib</option>
+        <option value="poly_linear">Linear Polyatomic (CO₂) — 3 Trans + 2 Rot + 4 Vib</option>
+        <option value="poly_nonlinear">Non-Linear Polyatomic (H₂O) — 3 Trans + 3 Rot + 6 Vib</option>
+      </select>
+    </div>
+
+    <div class="tool-group">
+      <label for="tempSlider"><b>Temperature (T):</b></label>
+      <input type="range" id="tempSlider" min="100" max="2500" step="50" value="1200">
+      <span class="val-pill" id="tempDisplay">1200 K</span>
+    </div>
+
+    <div class="tool-group">
+      <label for="speedSlider"><b>Speed:</b></label>
+      <input type="range" id="speedSlider" min="0.3" max="2.0" step="0.1" value="1.0">
+      <span class="val-pill" id="speedDisplay">1.0x</span>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn" id="playBtn">Pause</button>
+      <button class="btn btn-sec" id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <!-- Panel 1: Molecular Microstate Visualization -->
+    <div class="card">
+      <h2>
+        <span>1. Molecular Enclosure &amp; Simultaneous Modes</span>
+        <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;" id="modeTag">Diatomic Active</span>
+      </h2>
+      <canvas id="canvasMolecules" width="620" height="400"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#38bdf8;"></span><b>Translation</b> (&frac12;mv<sub>x</sub>&sup2; + &frac12;mv<sub>y</sub>&sup2;)</span>
+        <span><span class="legend-dot" style="background:#34d399;"></span><b>Rotation</b> (&frac12;I&omega;&sup2;)</span>
+        <span><span class="legend-dot" style="background:#f87171;"></span><b>Vibration</b> (&frac12;&mu;v<sub>vib</sub>&sup2; + &frac12;kx&sup2;)</span>
+      </div>
+    </div>
+
+    <!-- Panel 2: Real-Time Equipartition Bar Chart -->
+    <div class="card">
+      <h2>
+        <span>2. Instantaneous vs. Average Energy per DoF</span>
+        <span style="font-size:0.78rem; color:var(--muted); font-weight:normal;">Target: &frac12;kT per Term</span>
+      </h2>
+      <canvas id="canvasChart" width="480" height="400"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:rgba(56,189,248,0.7);"></span>Trans</span>
+        <span><span class="legend-dot" style="background:rgba(52,211,153,0.7);"></span>Rot</span>
+        <span><span class="legend-dot" style="background:rgba(248,113,113,0.7);"></span>Vib</span>
+        <span style="margin-left:auto; color:var(--purple); font-weight:bold;">--- Theoretical &frac12;kT</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory-card">
+    <h3>Mathematical Foundations of the Equipartition Theorem</h3>
+    <ul style="margin: 8px 0 8px 20px;">
+      <li>
+        <b>Classical Statement:</b> In thermal equilibrium at absolute temperature $T$, every independent quadratic variable appearing in the Hamiltonian system contributes an identical average energy of:
+        $$\langle \epsilon \rangle = \frac{1}{2} k_B T$$
+      </li>
+      <li>
+        <b>Translational Degrees of Freedom ($f_{\text{trans}} = 3$):</b> Kinetic motion along $x, y, z$ contributes $\frac{1}{2}mv_x^2 + \frac{1}{2}mv_y^2 + \frac{1}{2}mv_z^2 = \frac{3}{2}k_B T$.
+      </li>
+      <li>
+        <b>Rotational Degrees of Freedom ($f_{\text{rot}}$):</b> Linear molecules have 2 rotation axes with non-negligible moment of inertia ($\frac{1}{2}I\omega_1^2 + \frac{1}{2}I\omega_2^2 = 2 \times \frac{1}{2}k_B T = k_B T$). Non-linear molecules possess 3 rotational axes contributing $\frac{3}{2}k_B T$.
+      </li>
+      <li>
+        <b>Vibrational Coordinates ($2 \times \text{Modes}$):</b> Each normal vibrational mode comprises <b>two quadratic energy terms</b>: kinetic energy ($\frac{1}{2}\mu v^2$) and potential energy ($\frac{1}{2}kx^2$). Thus, each active vibrational mode absorbs $2 \times \frac{1}{2}k_B T = k_B T$.
+      </li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.</p>
+    <p style="margin-top: 4px;">Mobile: 9000837556 | Email: sureshbabuchallari@gmail.com</p>
+  </footer>
+</div>
+
+<script>
+  const canvasMol = document.getElementById('canvasMolecules');
+  const ctxMol = canvasMol.getContext('2d');
+  const canvasChart = document.getElementById('canvasChart');
+  const ctxChart = canvasChart.getContext('2d');
+
+  const gasTypeSel = document.getElementById('gasType');
+  const tempSlider = document.getElementById('tempSlider');
+  const tempDisplay = document.getElementById('tempDisplay');
+  const speedSlider = document.getElementById('speedSlider');
+  const speedDisplay = document.getElementById('speedDisplay');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const transDofVal = document.getElementById('transDofVal');
+  const transEVal = document.getElementById('transEVal');
+  const rotDofVal = document.getElementById('rotDofVal');
+  const rotEVal = document.getElementById('rotEVal');
+  const vibDofVal = document.getElementById('vibDofVal');
+  const vibEVal = document.getElementById('vibEVal');
+  const totEVal = document.getElementById('totEVal');
+  const molarCvVal = document.getElementById('molarCvVal');
+  const modeTag = document.getElementById('modeTag');
+
+  let isPlaying = true;
+  let time = 0;
+
+  // Running cumulative averages
+  let samplesCount = 0;
+  let avgTrans = 0;
+  let avgRot = 0;
+  let avgVibK = 0;
+  let avgVibP = 0;
+
+  playBtn.onclick = () => {
+    isPlaying = !isPlaying;
+    playBtn.innerText = isPlaying ? 'Pause' : 'Resume';
+  };
+
+  resetBtn.onclick = resetAccumulators;
+  gasTypeSel.onchange = resetAccumulators;
+  tempSlider.oninput = () => {
+    tempDisplay.innerText = tempSlider.value + ' K';
+    resetAccumulators();
+  };
+  speedSlider.oninput = () => {
+    speedDisplay.innerText = parseFloat(speedSlider.value).toFixed(1) + 'x';
+  };
+
+  function resetAccumulators() {
+    time = 0;
+    samplesCount = 0;
+    avgTrans = 0;
+    avgRot = 0;
+    avgVibK = 0;
+    avgVibP = 0;
+  }
+
+  // Molecule objects for container visual
+  const numMolecules = 14;
+  let molecules = [];
+
+  function initMolecules() {
+    molecules = [];
+    for (let i = 0; i < numMolecules; i++) {
+      molecules.push({
+        x: 40 + Math.random() * (canvasMol.width - 80),
+        y: 40 + Math.random() * (canvasMol.height - 80),
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        theta: Math.random() * Math.PI * 2,
+        omega: (Math.random() - 0.5) * 0.08,
+        vibPhase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+  initMolecules();
+
+  function getDegreesOfFreedom(type) {
+    switch (type) {
+      case 'mono':
+        return { trans: 3, rot: 0, vibModes: 0, totalQuad: 3, name: 'Monoatomic' };
+      case 'diatomic_rigid':
+        return { trans: 3, rot: 2, vibModes: 0, totalQuad: 5, name: 'Diatomic (Rigid)' };
+      case 'diatomic_vib':
+        return { trans: 3, rot: 2, vibModes: 1, totalQuad: 7, name: 'Diatomic (Vibrating)' };
+      case 'poly_linear':
+        return { trans: 3, rot: 2, vibModes: 2, totalQuad: 9, name: 'Linear Polyatomic' };
+      case 'poly_nonlinear':
+        return { trans: 3, rot: 3, vibModes: 3, totalQuad: 12, name: 'Non-Linear Polyatomic' };
+      default:
+        return { trans: 3, rot: 2, vibModes: 1, totalQuad: 7, name: 'Diatomic' };
+    }
+  }
+
+  function updateCards(dof) {
+    const totalTerms = dof.totalQuad;
+    const transTerms = dof.trans;
+    const rotTerms = dof.rot;
+    const vibTerms = dof.vibModes * 2;
+
+    transDofVal.innerText = `${transTerms} × (½kT)`;
+    transEVal.innerText = `${(transTerms * 0.5).toFixed(2)} kT`;
+
+    rotDofVal.innerText = rotTerms > 0 ? `${rotTerms} × (½kT)` : '0 (Frozen)';
+    rotEVal.innerText = `${(rotTerms * 0.5).toFixed(2)} kT`;
+
+    vibDofVal.innerText = vibTerms > 0 ? `${vibTerms} × (½kT)` : '0 (Frozen)';
+    vibEVal.innerText = vibTerms > 0 ? `${(vibTerms * 0.5).toFixed(2)} kT (Kin + Pot)` : '0.00 kT';
+
+    const totalKT = (totalTerms * 0.5).toFixed(2);
+    totEVal.innerText = `${totalKT} kT`;
+    molarCvVal.innerText = `Cᵥ = ${totalKT} R (${totalTerms}/2 R)`;
+    modeTag.innerText = `${dof.name} (Total: ${totalTerms} Terms)`;
+  }
+
+  function loop() {
+    const dof = getDegreesOfFreedom(gasTypeSel.value);
+    const T = parseFloat(tempSlider.value);
+    const speed = parseFloat(speedSlider.value);
+    updateCards(dof);
+
+    if (isPlaying) {
+      time += 0.04 * speed;
+      samplesCount++;
+
+      // Instantaneous fluctuation around classical 0.5 kT target
+      const targetPerDof = 0.5;
+      const transFluc = targetPerDof + 0.16 * Math.sin(time * 2.3);
+      const rotFluc = dof.rot > 0 ? targetPerDof + 0.18 * Math.cos(time * 3.1) : 0;
+      const vibKFluc = dof.vibModes > 0 ? targetPerDof * Math.sin(time * 4.2) ** 2 : 0;
+      const vibPFluc = dof.vibModes > 0 ? targetPerDof * Math.cos(time * 4.2) ** 2 : 0;
+
+      // Cumulative averaging (Law of Large Numbers demonstration)
+      avgTrans += (transFluc - avgTrans) / samplesCount;
+      if (dof.rot > 0) avgRot += (rotFluc - avgRot) / samplesCount;
+      if (dof.vibModes > 0) {
+        avgVibK += (vibKFluc - avgVibK) / samplesCount;
+        avgVibP += (vibPFluc - avgVibP) / samplesCount;
+      }
+    }
+
+    renderMolecules(dof, T, speed);
+    renderBarChart(dof);
+
+    requestAnimationFrame(loop);
+  }
+
+  // --- Render Container Panel ---
+  function renderMolecules(dof, T, speed) {
+    const w = canvasMol.width;
+    const h = canvasMol.height;
+    ctxMol.clearRect(0, 0, w, h);
+
+    // Bounding chamber wall
+    ctxMol.strokeStyle = '#334155';
+    ctxMol.lineWidth = 3;
+    ctxMol.strokeRect(10, 10, w - 20, h - 20);
+
+    const speedScale = Math.sqrt(T / 1200) * speed;
+
+    molecules.forEach(m => {
+      if (isPlaying) {
+        m.x += m.vx * speedScale;
+        m.y += m.vy * speedScale;
+
+        // Wall collisions
+        if (m.x < 35 || m.x > w - 35) m.vx *= -1;
+        if (m.y < 35 || m.y > h - 35) m.vy *= -1;
+
+        if (dof.rot > 0) m.theta += m.omega * speedScale * 2.5;
+        if (dof.vibModes > 0) m.vibPhase += 0.14 * speedScale * 3.0;
+      }
+
+      ctxMol.save();
+      ctxMol.translate(m.x, m.y);
+      ctxMol.rotate(m.theta);
+
+      const vibOffset = dof.vibModes > 0 ? Math.sin(m.vibPhase) * 5.5 : 0;
+      const bondLen = 22 + vibOffset;
+
+      if (dof.name.startsWith('Monoatomic')) {
+        // Single spherical atom (He / Ar)
+        drawAtom(0, 0, 8, '#38bdf8');
+      } else if (dof.name.startsWith('Non-Linear')) {
+        // Bent H2O shape
+        drawBond(0, 0, -bondLen * 0.7, -bondLen * 0.6);
+        drawBond(0, 0, bondLen * 0.7, -bondLen * 0.6);
+        drawAtom(0, 0, 9, '#f87171');
+        drawAtom(-bondLen * 0.7, -bondLen * 0.6, 6, '#38bdf8');
+        drawAtom(bondLen * 0.7, -bondLen * 0.6, 6, '#38bdf8');
+      } else {
+        // Linear / Diatomic molecule
+        drawBond(-bondLen, 0, bondLen, 0);
+        drawAtom(-bondLen, 0, 7.5, '#38bdf8');
+        drawAtom(bondLen, 0, 7.5, '#34d399');
+
+        // Spring representation if vibrating
+        if (dof.vibModes > 0) {
+          ctxMol.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+          ctxMol.lineWidth = 1.4;
+          ctxMol.beginPath();
+          ctxMol.arc(0, 0, 7, 0, Math.PI * 2);
+          ctxMol.stroke();
+        }
+      }
+
+      ctxMol.restore();
+    });
+  }
+
+  function drawAtom(x, y, r, color) {
+    const grad = ctxMol.createRadialGradient(x, y, 1, x, y, r);
+    grad.addColorStop(0, '#fff');
+    grad.addColorStop(0.4, color);
+    grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctxMol.fillStyle = grad;
+    ctxMol.beginPath();
+    ctxMol.arc(x, y, r, 0, Math.PI * 2);
+    ctxMol.fill();
+  }
+
+  function drawBond(x1, y1, x2, y2) {
+    ctxMol.strokeStyle = '#64748b';
+    ctxMol.lineWidth = 3;
+    ctxMol.beginPath();
+    ctxMol.moveTo(x1, y1);
+    ctxMol.lineTo(x2, y2);
+    ctxMol.stroke();
+  }
+
+  // --- Render Equipartition Chart ---
+  function renderBarChart(dof) {
+    const w = canvasChart.width;
+    const h = canvasChart.height;
+    ctxChart.clearRect(0, 0, w, h);
+
+    const padL = 50, padR = 20, padT = 35, padB = 45;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    // Grid baseline and markers
+    ctxChart.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+    ctxChart.lineWidth = 1;
+    ctxChart.beginPath();
+    ctxChart.moveTo(padL, padT); ctxChart.lineTo(w - padR, padT);
+    ctxChart.moveTo(padL, padT + plotH / 2); ctxChart.lineTo(w - padR, padT + plotH / 2);
+    ctxChart.moveTo(padL, padT + plotH); ctxChart.lineTo(w - padR, padT + plotH);
+    ctxChart.stroke();
+
+    ctxChart.fillStyle = '#94a3b8';
+    ctxChart.font = '11px monospace';
+    ctxChart.fillText('1.0 kT', 8, padT + 4);
+    ctxChart.fillText('0.5 kT', 8, padT + plotH / 2 + 4);
+    ctxChart.fillText('0.0', 20, padT + plotH + 4);
+
+    // Theoretical 1/2 kT dashed line across bars
+    const halfY = padT + plotH / 2;
+    ctxChart.strokeStyle = '#c084fc';
+    ctxChart.lineWidth = 1.5;
+    ctxChart.setLineDash([4, 4]);
+    ctxChart.beginPath();
+    ctxChart.moveTo(padL, halfY);
+    ctxChart.lineTo(w - padR, halfY);
+    ctxChart.stroke();
+    ctxChart.setLineDash([]);
+
+    // Data items to plot per active coordinate
+    const items = [
+      { name: 'Trans X', val: avgTrans, col: '#38bdf8' },
+      { name: 'Trans Y', val: avgTrans, col: '#38bdf8' },
+      { name: 'Trans Z', val: avgTrans, col: '#38bdf8' }
+    ];
+
+    if (dof.rot >= 2) {
+      items.push({ name: 'Rot 1', val: avgRot, col: '#34d399' });
+      items.push({ name: 'Rot 2', val: avgRot, col: '#34d399' });
+    }
+    if (dof.rot === 3) {
+      items.push({ name: 'Rot 3', val: avgRot, col: '#34d399' });
+    }
+    if (dof.vibModes > 0) {
+      items.push({ name: 'Vib Kin', val: avgVibK, col: '#fbbf24' });
+      items.push({ name: 'Vib Pot', val: avgVibP, col: '#f87171' });
+    }
+
+    const barWidth = Math.min(36, (plotW / items.length) * 0.65);
+    const slotW = plotW / items.length;
+
+    items.forEach((item, idx) => {
+      const x = padL + idx * slotW + (slotW - barWidth) / 2;
+      const barH = (item.val / 1.0) * plotH;
+      const y = padT + plotH - barH;
+
+      // Bar fill
+      ctxChart.fillStyle = item.col;
+      ctxChart.fillRect(x, y, barWidth, barH);
+
+      // Label below bar
+      ctxChart.fillStyle = '#94a3b8';
+      ctxChart.font = '10px monospace';
+      ctxChart.textAlign = 'center';
+      ctxChart.fillText(item.name, x + barWidth / 2, padT + plotH + 18);
+
+      // Value above bar
+      ctxChart.fillStyle = '#fff';
+      ctxChart.fillText(item.val.toFixed(2), x + barWidth / 2, y - 6);
+    });
+  }
+
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

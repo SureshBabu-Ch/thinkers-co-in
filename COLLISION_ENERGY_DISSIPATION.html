@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+  Vasireddy Venkatadri International Technological University. 
+  Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+-->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boltzmann Energy Dissipation: 50 Red Particle Influx</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --accent: #38bdf8;
+      --blue: #38bdf8;
+      --green: #34d399;
+      --red: #f87171;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* Live Population Cards */
+    .stat-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 820px) {
+      .stat-banner { grid-template-columns: 1fr 1fr; }
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+
+    .stat-card span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-card strong {
+      font-size: 1.45rem;
+      font-family: monospace;
+      color: #fff;
+    }
+
+    .stat-card small {
+      font-size: 0.74rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 12px 18px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+    }
+
+    input[type=range] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .val-pill {
+      background: #090d16;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: var(--accent);
+      font-weight: bold;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .btn {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.86rem;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover { background: #0369a1; }
+    .btn-red { 
+      background: #dc2626; 
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); 
+    }
+    .btn-red:hover { background: #b91c1c; }
+    .btn-sec { background: #334155; }
+    .btn-sec:hover { background: #475569; }
+
+    /* Dual Canvas Layout */
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .grid-main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 1.02rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      padding-bottom: 8px;
+    }
+
+    canvas {
+      background: #050811;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.82rem;
+      margin-top: 10px;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .theory-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .theory-card h3 {
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 0.98rem;
+    }
+
+    .rules-box {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Collision-Driven Energy Dissipation Simulation</h1>
+    <p>Inject massive bursts of 50 high-speed red particles and observe why an energy hierarchy naturally degrades toward the lower baseline.</p>
+  </header>
+
+  <!-- Live Population Cards -->
+  <div class="stat-banner">
+    <div class="stat-card" style="border-top: 3px solid var(--red);">
+      <span>High Speed (Red)</span>
+      <strong id="countRed" style="color:var(--red);">0</strong>
+      <small>Fast Excited State</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid var(--green);">
+      <span>Medium Speed (Green)</span>
+      <strong id="countGreen" style="color:var(--green);">0</strong>
+      <small>Transitional Cascading State</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid var(--blue);">
+      <span>Low Speed (Blue)</span>
+      <strong id="countBlue" style="color:var(--blue);">160</strong>
+      <small>Ground State Baseline</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid #c084fc;">
+      <span>Ground State Dominance</span>
+      <strong id="statPercentBlue" style="color:#c084fc;">100.0%</strong>
+      <small>Blue Population Fraction</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <button class="btn btn-red" id="inject50RedBtn">🔥 Inject 50 Red Particles</button>
+      <button class="btn" id="playBtn">Pause</button>
+      <button class="btn btn-sec" id="resetBtn">Reset All to Blue</button>
+    </div>
+
+    <div class="tool-group">
+      <label for="speedSlider"><b>Speed:</b></label>
+      <input type="range" id="speedSlider" min="0.4" max="2.5" step="0.1" value="1.0">
+      <span class="val-pill" id="speedVal">1.0x</span>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <!-- Panel 1: Chamber Canvas -->
+    <div class="card">
+      <h2>
+        <span>1. Molecular Collision Chamber</span>
+        <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;">Real-Time Multi-Particle Tracking</span>
+      </h2>
+      <canvas id="chamberCanvas" width="560" height="420"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#f87171;"></span><b>Red</b> (High Speed: ~620 px/s)</span>
+        <span><span class="legend-dot" style="background:#34d399;"></span><b>Green</b> (Medium Speed: ~250 px/s)</span>
+        <span><span class="legend-dot" style="background:#38bdf8;"></span><b>Blue</b> (Low Speed: ~150 px/s)</span>
+      </div>
+    </div>
+
+    <!-- Panel 2: Live Population Chart -->
+    <div class="card">
+      <h2>
+        <span>2. Dynamic Population Distribution</span>
+        <span style="font-size:0.8rem; color:var(--muted); font-weight:normal;">Total N = 160</span>
+      </h2>
+      <canvas id="chartCanvas" width="560" height="420"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#f87171;"></span>Red (High E)</span>
+        <span><span class="legend-dot" style="background:#34d399;"></span>Green (Med E)</span>
+        <span><span class="legend-dot" style="background:#38bdf8;"></span>Blue (Low E)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory-card">
+    <h3>Why High Energy Cannot Sustain Itself (The Contrast Principle)</h3>
+    <div class="rules-box">
+      <b>Collision Dissipation Sequence:</b><br>
+      • <b>Red (Fast) + Blue (Slow):</b> Instant kinetic transfer &rarr; Both particles become <b>Green (Medium Speed)</b>.<br>
+      • <b>Green + Green / Green + Blue:</b> Secondary impacts extinguish remaining excess energy &rarr; Both drop to <b>Blue (Low Speed)</b>.<br>
+      • <b>Red + Green:</b> Both stay <b>Green</b>.<br>
+      • <b>Blue + Blue:</b> Stable thermal ground collisions &rarr; Stay <b>Blue</b>.
+    </div>
+    <ul style="margin: 8px 0 8px 20px;">
+      <li><b>The Relativity of Energy:</b> If all particles are blue, there is no temperature contrast. Injecting <b>50 red particles</b> injects a defined high-energy tier into the system.</li>
+      <li><b>The Quenching Cascade:</b> Watch the chart when you press the red button. The red bar jumps instantly to 50, but within seconds, collisions rapidly drive it to zero while green spikes temporarily as an intermediate wave.</li>
+      <li><b>Statistical Inevitability:</b> High-velocity particles sweep out larger collision cross-sections per second. Because every collision with a slower particle robs it of excess momentum, high-energy states decay far faster than they can ever be sustained, proving why low-energy states permanently dominate Boltzmann equilibrium.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.</p>
+    <p style="margin-top: 4px;">Mobile: 9000837556 | Email: sureshbabuchallari@gmail.com</p>
+  </footer>
+</div>
+
+<script>
+  const chamberCanvas = document.getElementById('chamberCanvas');
+  const ctxChamber = chamberCanvas.getContext('2d');
+  const chartCanvas = document.getElementById('chartCanvas');
+  const ctxChart = chartCanvas.getContext('2d');
+
+  const countRed = document.getElementById('countRed');
+  const countGreen = document.getElementById('countGreen');
+  const countBlue = document.getElementById('countBlue');
+  const statPercentBlue = document.getElementById('statPercentBlue');
+
+  const inject50RedBtn = document.getElementById('inject50RedBtn');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const speedSlider = document.getElementById('speedSlider');
+  const speedVal = document.getElementById('speedVal');
+
+  let isPlaying = true;
+  const TOTAL_N = 160;
+
+  // Calibrated real-world speeds (pixels per second)
+  const SPEED_BLUE = 150.0;   // Low speed (active thermal motion)
+  const SPEED_GREEN = 250.0;  // Medium speed (noticeably faster)
+  const SPEED_RED = 620.0;    // High speed (rapid kinetic injection)
+
+  const RADIUS = 4.2;
+  let particles = [];
+
+  function createParticle(type) {
+    const angle = Math.random() * Math.PI * 2;
+    let s = SPEED_BLUE;
+    let col = '#38bdf8';
+
+    if (type === 'red') {
+      s = SPEED_RED;
+      col = '#f87171';
+    } else if (type === 'green') {
+      s = SPEED_GREEN;
+      col = '#34d399';
+    }
+
+    return {
+      x: RADIUS * 2 + Math.random() * (chamberCanvas.width - RADIUS * 4),
+      y: RADIUS * 2 + Math.random() * (chamberCanvas.height - RADIUS * 4),
+      vx: Math.cos(angle) * s,
+      vy: Math.sin(angle) * s,
+      type: type,
+      color: col,
+      radius: RADIUS
+    };
+  }
+
+  function setParticleType(p, newType) {
+    if (p.type === newType) return;
+    p.type = newType;
+
+    const currentSpeed = Math.sqrt(p.vx * p.vx + p.vy * p.vy) || 1;
+    let targetSpeed = SPEED_BLUE;
+
+    if (newType === 'red') {
+      p.color = '#f87171';
+      targetSpeed = SPEED_RED;
+    } else if (newType === 'green') {
+      p.color = '#34d399';
+      targetSpeed = SPEED_GREEN;
+    } else {
+      p.color = '#38bdf8';
+      targetSpeed = SPEED_BLUE;
+    }
+
+    p.vx = (p.vx / currentSpeed) * targetSpeed;
+    p.vy = (p.vy / currentSpeed) * targetSpeed;
+  }
+
+  function initEnsemble() {
+    particles = [];
+    // Start with all 160 particles as Blue ground state
+    for (let i = 0; i < TOTAL_N; i++) {
+      particles.push(createParticle('blue'));
+    }
+  }
+
+  initEnsemble();
+
+  playBtn.onclick = () => {
+    isPlaying = !isPlaying;
+    playBtn.innerText = isPlaying ? 'Pause' : 'Resume';
+  };
+
+  resetBtn.onclick = initEnsemble;
+
+  // INJECT 50 RED PARTICLES IN A SINGLE BURST
+  inject50RedBtn.onclick = () => {
+    let converted = 0;
+    // Shuffle indices to distribute injected red particles evenly throughout the chamber
+    const indices = Array.from({length: TOTAL_N}, (_, i) => i).sort(() => Math.random() - 0.5);
+    
+    for (let i = 0; i < indices.length && converted < 50; i++) {
+      const idx = indices[i];
+      if (particles[idx].type !== 'red') {
+        setParticleType(particles[idx], 'red');
+        converted++;
+      }
+    }
+  };
+
+  speedSlider.oninput = () => {
+    speedVal.innerText = `${parseFloat(speedSlider.value).toFixed(1)}x`;
+  };
+
+  function updatePhysics(dt) {
+    const w = chamberCanvas.width;
+    const h = chamberCanvas.height;
+
+    // 1. Position integration & wall reflections
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      if (p.x < p.radius) { p.x = p.radius; p.vx *= -1; }
+      if (p.x > w - p.radius) { p.x = w - p.radius; p.vx *= -1; }
+      if (p.y < p.radius) { p.y = p.radius; p.vy *= -1; }
+      if (p.y > h - p.radius) { p.y = h - p.radius; p.vy *= -1; }
+    }
+
+    // 2. Binary collision resolution & state transitions
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const p1 = particles[i];
+        const p2 = particles[j];
+
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const minDist = p1.radius + p2.radius;
+
+        if (dist < minDist && dist > 0) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          const kx = p1.vx - p2.vx;
+          const ky = p1.vy - p2.vy;
+          const relVel = nx * kx + ny * ky;
+
+          if (relVel > 0) {
+            // Elastic collision bounce mechanics
+            p1.vx -= nx * relVel;
+            p1.vy -= ny * relVel;
+            p2.vx += nx * relVel;
+            p2.vy += ny * relVel;
+
+            const overlap = 0.5 * (minDist - dist);
+            p1.x -= nx * overlap;
+            p1.y -= ny * overlap;
+            p2.x += nx * overlap;
+            p2.y += ny * overlap;
+
+            // State Transition Rules
+            const t1 = p1.type;
+            const t2 = p2.type;
+
+            // Red + Blue -> Both become Green (immediate dissipation)
+            if ((t1 === 'red' && t2 === 'blue') || (t1 === 'blue' && t2 === 'red')) {
+              setParticleType(p1, 'green');
+              setParticleType(p2, 'green');
+            }
+            // Green + any non-Red -> Both relax to Blue
+            else if (t1 === 'green' && t2 !== 'red') {
+              setParticleType(p1, 'blue');
+              setParticleType(p2, 'blue');
+            }
+            else if (t2 === 'green' && t1 !== 'red') {
+              setParticleType(p1, 'blue');
+              setParticleType(p2, 'blue');
+            }
+            // Red + Green -> Both stay Green
+            else if ((t1 === 'red' && t2 === 'green') || (t1 === 'green' && t2 === 'red')) {
+              setParticleType(p1, 'green');
+              setParticleType(p2, 'green');
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function drawChamber() {
+    const w = chamberCanvas.width;
+    const h = chamberCanvas.height;
+    ctxChamber.clearRect(0, 0, w, h);
+
+    ctxChamber.strokeStyle = '#334155';
+    ctxChamber.lineWidth = 2;
+    ctxChamber.strokeRect(1, 1, w - 2, h - 2);
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      ctxChamber.fillStyle = p.color;
+      ctxChamber.beginPath();
+      ctxChamber.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctxChamber.fill();
+    }
+  }
+
+  function drawChart(nRed, nGreen, nBlue) {
+    const w = chartCanvas.width;
+    const h = chartCanvas.height;
+    ctxChart.clearRect(0, 0, w, h);
+
+    const padL = 60, padR = 30, padT = 30, padB = 55;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    // Grid baseline and markers
+    ctxChart.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+    ctxChart.lineWidth = 1;
+    ctxChart.beginPath();
+    ctxChart.moveTo(padL, padT); ctxChart.lineTo(w - padR, padT);
+    ctxChart.moveTo(padL, padT + plotH / 2); ctxChart.lineTo(w - padR, padT + plotH / 2);
+    ctxChart.moveTo(padL, padT + plotH); ctxChart.lineTo(w - padR, padT + plotH);
+    ctxChart.stroke();
+
+    ctxChart.fillStyle = '#94a3b8';
+    ctxChart.font = '11px monospace';
+    ctxChart.fillText(`${TOTAL_N}`, 20, padT + 4);
+    ctxChart.fillText(`${TOTAL_N / 2}`, 20, padT + plotH / 2 + 4);
+    ctxChart.fillText('0', 25, padT + plotH + 4);
+
+    const categories = [
+      { name: 'Red (High Speed)', count: nRed, col: '#f87171' },
+      { name: 'Green (Med Speed)', count: nGreen, col: '#34d399' },
+      { name: 'Blue (Low Speed)', count: nBlue, col: '#38bdf8' }
+    ];
+
+    const slotW = plotW / 3;
+    const barW = slotW * 0.55;
+
+    categories.forEach((cat, idx) => {
+      const x = padL + idx * slotW + (slotW - barW) / 2;
+      const barH = (cat.count / TOTAL_N) * plotH;
+      const y = padT + plotH - barH;
+
+      ctxChart.fillStyle = cat.col;
+      ctxChart.fillRect(x, y, barW, barH);
+
+      ctxChart.fillStyle = '#fff';
+      ctxChart.font = 'bold 13px monospace';
+      ctxChart.textAlign = 'center';
+      ctxChart.fillText(cat.count, x + barW / 2, y - 8);
+
+      const pct = ((cat.count / TOTAL_N) * 100).toFixed(1);
+      ctxChart.font = '10px monospace';
+      ctxChart.fillStyle = cat.col;
+      ctxChart.fillText(`${pct}%`, x + barW / 2, y - 22 > padT ? y - 22 : y + 16);
+
+      ctxChart.fillStyle = '#94a3b8';
+      ctxChart.font = '11px monospace';
+      ctxChart.fillText(cat.name, x + barW / 2, padT + plotH + 20);
+    });
+  }
+
+  let lastTime = 0;
+
+  function loop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.035);
+    lastTime = timestamp;
+
+    const speed = parseFloat(speedSlider.value);
+
+    if (isPlaying) {
+      const subSteps = 8;
+      const stepDt = (dt * speed) / subSteps;
+      for (let s = 0; s < subSteps; s++) {
+        updatePhysics(stepDt);
+      }
+    }
+
+    let nRed = 0, nGreen = 0, nBlue = 0;
+    particles.forEach(p => {
+      if (p.type === 'red') nRed++;
+      else if (p.type === 'green') nGreen++;
+      else nBlue++;
+    });
+
+    countRed.innerText = nRed;
+    countGreen.innerText = nGreen;
+    countBlue.innerText = nBlue;
+    statPercentBlue.innerText = `${((nBlue / TOTAL_N) * 100).toFixed(1)}%`;
+
+    drawChamber();
+    drawChart(nRed, nGreen, nBlue);
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

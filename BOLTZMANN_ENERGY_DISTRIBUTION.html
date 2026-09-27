@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+  Vasireddy Venkatadri International Technological University. 
+  Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+-->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ludwig Boltzmann Statistical Mechanics & Energy Distribution Simulation</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --card: #0f172a;
+      --accent: #38bdf8;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --low-col: #38bdf8;   /* Cyan */
+      --med-col: #34d399;   /* Green */
+      --high-col: #f87171;  /* Red */
+      --curve-col: #fbbf24; /* Amber */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 1260px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 1.55rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    /* Live Stat Dashboard */
+    .stat-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 860px) {
+      .stat-banner { grid-template-columns: 1fr 1fr; }
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+
+    .stat-card span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .stat-card strong {
+      font-size: 1.35rem;
+      font-family: monospace;
+      color: #fff;
+    }
+
+    .stat-card small {
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* Toolbar Controls */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.86rem;
+    }
+
+    input[type=range] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .val-pill {
+      background: #070b14;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: var(--accent);
+      font-weight: bold;
+      min-width: 58px;
+      text-align: center;
+      font-size: 0.82rem;
+    }
+
+    .btn {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 7px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.82rem;
+      transition: background 0.15s ease;
+    }
+
+    .btn:hover { background: #0369a1; }
+    .btn-red { background: #dc2626; box-shadow: 0 0 10px rgba(220, 38, 38, 0.4); }
+    .btn-red:hover { background: #b91c1c; }
+    .btn-sec { background: #334155; }
+    .btn-sec:hover { background: #475569; }
+
+    /* Dual Simulation Panes */
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .grid-main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card h2 {
+      font-size: 0.96rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      padding-bottom: 6px;
+    }
+
+    canvas {
+      background: #03060c;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 0.8rem;
+      margin-top: 8px;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    /* Mathematical Theory Card */
+    .theory-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+
+    .theory-card h3 {
+      color: var(--accent);
+      margin-bottom: 6px;
+      font-size: 0.94rem;
+    }
+
+    .math-box {
+      background: #070b14;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 8px 0;
+      font-family: monospace;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      padding: 14px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Boltzmann Statistical Mechanics &amp; Energy Distribution Simulation</h1>
+    <p>Visualizing hard-sphere thermalization, collision-driven kinetic redistribution, and the natural emergence of exponential population decay $N(E) \propto e^{-E/k_B T}$.</p>
+  </header>
+
+  <!-- Live Stats Banner -->
+  <div class="stat-banner">
+    <div class="stat-card" style="border-top: 3px solid #38bdf8;">
+      <span>Total Ensemble Particles</span>
+      <strong id="statN">N = 180</strong>
+      <small>Conserved System Size</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid #34d399;">
+      <span>Mean Kinetic Energy &lang;E&rang;</span>
+      <strong id="statMeanE">1.00 E₀</strong>
+      <small>Equipartition Baseline</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid #38bdf8;">
+      <span>Low-Energy Fraction (E &lt; &lang;E&rang;)</span>
+      <strong id="statLowPop">~63.2%</strong>
+      <small>Dominant Base Population</small>
+    </div>
+    <div class="stat-card" style="border-top: 3px solid #f87171;">
+      <span>High-Energy Tail (E &gt; 2&lang;E&rang;)</span>
+      <strong id="statHighPop">~13.5%</strong>
+      <small>Exponentially Suppressed</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <button class="btn btn-red" id="injectHighBtn">⚡ Inject 30 Fast Particles</button>
+      <button class="btn" id="playBtn">Pause</button>
+      <button class="btn btn-sec" id="resetBtn">Reset Equilibrium</button>
+    </div>
+
+    <div class="tool-group">
+      <label for="tempSlider"><b>Thermal Energy ($k_B T$):</b></label>
+      <input type="range" id="tempSlider" min="20" max="80" step="2" value="40">
+      <span class="val-pill" id="tempVal">40 a.u.</span>
+    </div>
+
+    <div class="tool-group">
+      <label for="speedSlider"><b>Speed:</b></label>
+      <input type="range" id="speedSlider" min="0.5" max="2.5" step="0.1" value="1.0">
+      <span class="val-pill" id="speedVal">1.0x</span>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <!-- Panel 1: Colliding Particle Chamber -->
+    <div class="card">
+      <h2>
+        <span>1. 2D Hard-Sphere Molecular Chamber</span>
+        <span style="font-size:0.78rem; color:var(--muted); font-weight:normal;">Real-Time Kinetic Motion</span>
+      </h2>
+      <canvas id="chamberCanvas" width="560" height="400"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:#38bdf8;"></span><b>Low Energy</b> ($E < \langle E \rangle$)</span>
+        <span><span class="legend-dot" style="background:#34d399;"></span><b>Moderate Energy</b> ($\approx \langle E \rangle$)</span>
+        <span><span class="legend-dot" style="background:#f87171;"></span><b>High Energy Tail</b> ($E > 2\langle E \rangle$)</span>
+      </div>
+    </div>
+
+    <!-- Panel 2: Boltzmann Population Histogram -->
+    <div class="card">
+      <h2>
+        <span>2. Live Energy Population Distribution</span>
+        <span style="font-size:0.78rem; color:var(--muted); font-weight:normal;">Continuous Binned Counts vs. Theoretical Curve</span>
+      </h2>
+      <canvas id="histCanvas" width="560" height="400"></canvas>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:rgba(56, 189, 248, 0.75);"></span>Observed Bins $N(E)$</span>
+        <span><span class="legend-dot" style="background:#fbbf24;"></span>Boltzmann Curve: $N(E) \propto e^{-E/k_B T}$</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory-card">
+    <h3>Physical Principles of Ludwig Boltzmann’s Distribution (1877)</h3>
+    <div class="math-box">
+      • Probability Density: P(E) = (1 / k_B T) · e^(-E / k_B T)<br>
+      • Boltzmann Multiplicity: S = k_B · ln(Ω)<br>
+      • Conservation Law: Total Energy E_total = ∑ (1/2 · m · v_i²) = Constant
+    </div>
+    <ul style="margin: 6px 0 6px 20px;">
+      <li><b>Why Lower Energies Always Dominate:</b> For a single particle to reach an extreme kinetic energy state ($E \gg k_B T$), many other surrounding particles must surrender their momentum and slow down. Because there are vastly fewer microscopic configurations (microstates $\Omega$) capable of concentrating energy into a few chosen particles, the probability decays exponentially.</li>
+      <li><b>Fast Relaxation of High-Energy Bursts:</b> When you click <i>"Inject 30 Fast Particles"</i>, watch the histogram. The sudden high-energy peak vanishes within seconds as fast particles undergo frequent collisions, dispersing their excess momentum and returning the ensemble to the classic Boltzmann curve.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.</p>
+    <p style="margin-top: 3px;">Mobile: 9000837556 | Email: sureshbabuchallari@gmail.com</p>
+  </footer>
+</div>
+
+<script>
+  const chamberCanvas = document.getElementById('chamberCanvas');
+  const ctxChamber = chamberCanvas.getContext('2d');
+  const histCanvas = document.getElementById('histCanvas');
+  const ctxHist = histCanvas.getContext('2d');
+
+  const statN = document.getElementById('statN');
+  const statMeanE = document.getElementById('statMeanE');
+  const statLowPop = document.getElementById('statLowPop');
+  const statHighPop = document.getElementById('statHighPop');
+
+  const tempSlider = document.getElementById('tempSlider');
+  const tempVal = document.getElementById('tempVal');
+  const speedSlider = document.getElementById('speedSlider');
+  const speedVal = document.getElementById('speedVal');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const injectHighBtn = document.getElementById('injectHighBtn');
+
+  let isPlaying = true;
+  const N = 180;
+  statN.innerText = `N = ${N}`;
+  const RADIUS = 4.2;
+
+  let particles = [];
+
+  function initEnsemble() {
+    particles = [];
+    const targetKT = parseFloat(tempSlider.value);
+    // In 2D, <E> = 1/2 m v_rms^2 = kT => v_rms = sqrt(2 kT / m)
+    const v0 = Math.sqrt((2 * targetKT) / 1.0) * 18.0;
+
+    for (let i = 0; i < N; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      // Start with roughly distributed Maxwellian speeds
+      const u1 = Math.random(), u2 = Math.random();
+      const speed = v0 * Math.sqrt(-Math.log(u1 || 0.001));
+
+      particles.push({
+        x: RADIUS * 2 + Math.random() * (chamberCanvas.width - RADIUS * 4),
+        y: RADIUS * 2 + Math.random() * (chamberCanvas.height - RADIUS * 4),
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        mass: 1.0,
+        energy: 0
+      });
+    }
+  }
+
+  initEnsemble();
+
+  playBtn.onclick = () => {
+    isPlaying = !isPlaying;
+    playBtn.innerText = isPlaying ? 'Pause' : 'Resume';
+  };
+
+  resetBtn.onclick = initEnsemble;
+
+  injectHighBtn.onclick = () => {
+    // Convert 30 random particles into ultra-fast energy injectors
+    const targetKT = parseFloat(tempSlider.value);
+    const superSpeed = Math.sqrt((2 * targetKT) / 1.0) * 55.0; // ~3x thermal velocity
+
+    const indices = Array.from({length: N}, (_, i) => i).sort(() => Math.random() - 0.5);
+    for (let i = 0; i < 30; i++) {
+      const p = particles[indices[i]];
+      const angle = Math.random() * Math.PI * 2;
+      p.vx = Math.cos(angle) * superSpeed;
+      p.vy = Math.sin(angle) * superSpeed;
+    }
+  };
+
+  tempSlider.oninput = () => {
+    tempVal.innerText = `${tempSlider.value} a.u.`;
+    const targetKT = parseFloat(tempSlider.value);
+
+    // Rescale current particle velocities to match new thermal energy
+    let curTotalE = 0;
+    particles.forEach(p => {
+      curTotalE += 0.5 * p.mass * (p.vx * p.vx + p.vy * p.vy);
+    });
+    const desiredTotalE = N * (targetKT * 324.0); // Calibrated scale
+    const factor = Math.sqrt(desiredTotalE / (curTotalE || 1));
+    particles.forEach(p => {
+      p.vx *= factor;
+      p.vy *= factor;
+    });
+  };
+
+  speedSlider.oninput = () => {
+    speedVal.innerText = `${parseFloat(speedSlider.value).toFixed(1)}x`;
+  };
+
+  function getEnergyColor(e, meanE) {
+    const ratio = e / (meanE || 1);
+    if (ratio < 0.8) return '#38bdf8';       // Cyan (Low)
+    if (ratio < 1.8) return '#34d399';       // Green (Intermediate)
+    return '#f87171';                        // Red (High)
+  }
+
+  function updatePhysics(dt) {
+    const w = chamberCanvas.width;
+    const h = chamberCanvas.height;
+
+    // 1. Move & bounce against hard chamber walls
+    for (let i = 0; i < N; i++) {
+      const p = particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      if (p.x < RADIUS) { p.x = RADIUS; p.vx *= -1; }
+      if (p.x > w - RADIUS) { p.x = w - RADIUS; p.vx *= -1; }
+      if (p.y < RADIUS) { p.y = RADIUS; p.vy *= -1; }
+      if (p.y > h - RADIUS) { p.y = h - RADIUS; p.vy *= -1; }
+
+      // E = 1/2 m (vx^2 + vy^2)
+      p.energy = 0.5 * p.mass * (p.vx * p.vx + p.vy * p.vy);
+    }
+
+    // 2. Exact 2D elastic binary collisions
+    for (let i = 0; i < N; i++) {
+      for (let j = i + 1; j < N; j++) {
+        const p1 = particles[i];
+        const p2 = particles[j];
+
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const minDist = RADIUS * 2;
+
+        if (dist < minDist && dist > 0) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          const kx = p1.vx - p2.vx;
+          const ky = p1.vy - p2.vy;
+          const relVel = nx * kx + ny * ky;
+
+          if (relVel > 0) { // Approaching each other
+            p1.vx -= nx * relVel;
+            p1.vy -= ny * relVel;
+            p2.vx += nx * relVel;
+            p2.vy += ny * relVel;
+
+            const overlap = 0.5 * (minDist - dist);
+            p1.x -= nx * overlap;
+            p1.y -= ny * overlap;
+            p2.x += nx * overlap;
+            p2.y += ny * overlap;
+          }
+        }
+      }
+    }
+  }
+
+  function drawChamber(meanE) {
+    const w = chamberCanvas.width;
+    const h = chamberCanvas.height;
+    ctxChamber.clearRect(0, 0, w, h);
+
+    // Chamber border
+    ctxChamber.strokeStyle = '#334155';
+    ctxChamber.lineWidth = 2;
+    ctxChamber.strokeRect(1, 1, w - 2, h - 2);
+
+    for (let i = 0; i < N; i++) {
+      const p = particles[i];
+      ctxChamber.fillStyle = getEnergyColor(p.energy, meanE);
+      ctxChamber.beginPath();
+      ctxChamber.arc(p.x, p.y, RADIUS, 0, Math.PI * 2);
+      ctxChamber.fill();
+    }
+  }
+
+  function drawHistogram(meanE) {
+    const w = histCanvas.width;
+    const h = histCanvas.height;
+    ctxHist.clearRect(0, 0, w, h);
+
+    const padL = 55, padR = 25, padT = 25, padB = 45;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    // Grid baseline
+    ctxHist.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+    ctxHist.lineWidth = 1;
+    ctxHist.beginPath();
+    ctxHist.moveTo(padL, padT); ctxHist.lineTo(w - padR, padT);
+    ctxHist.moveTo(padL, padT + plotH / 2); ctxHist.lineTo(w - padR, padT + plotH / 2);
+    ctxHist.moveTo(padL, padT + plotH); ctxHist.lineTo(w - padR, padT + plotH);
+    ctxHist.stroke();
+
+    // Binning continuous kinetic energy E
+    const numBins = 18;
+    const maxE = meanE * 3.8;
+    const binWidth = maxE / numBins;
+    const counts = new Array(numBins).fill(0);
+
+    let countBelowMean = 0;
+    let countAboveTwoMean = 0;
+
+    particles.forEach(p => {
+      if (p.energy < meanE) countBelowMean++;
+      if (p.energy > 2 * meanE) countAboveTwoMean++;
+
+      const bIdx = Math.floor(p.energy / binWidth);
+      if (bIdx >= 0 && bIdx < numBins) counts[bIdx]++;
+    });
+
+    // Update Banner
+    statMeanE.innerText = `${(meanE / 1000).toFixed(2)} kE₀`;
+    statLowPop.innerText = `${((countBelowMean / N) * 100).toFixed(1)}%`;
+    statHighPop.innerText = `${((countAboveTwoMean / N) * 100).toFixed(1)}%`;
+
+    const maxCountScale = N * 0.30;
+    const barSpacing = plotW / numBins;
+    const barW = barSpacing * 0.82;
+
+    // 1. Draw Observed Binned Bars N(E)
+    for (let b = 0; b < numBins; b++) {
+      const eCenter = (b + 0.5) * binWidth;
+      const barH = Math.min((counts[b] / maxCountScale) * plotH, plotH);
+      const x = padL + b * barSpacing + (barSpacing - barW) / 2;
+      const y = padT + plotH - barH;
+
+      ctxHist.fillStyle = getEnergyColor(eCenter, meanE);
+      ctxHist.fillRect(x, y, barW, barH);
+    }
+
+    // 2. Draw Theoretical Classical Boltzmann Decay Curve: N(E) ~ exp(-E / kT)
+    ctxHist.strokeStyle = '#fbbf24';
+    ctxHist.lineWidth = 2.4;
+    ctxHist.beginPath();
+
+    const kT = meanE; // In 2D gas, <E> = kT
+    for (let px = 0; px <= plotW; px += 3) {
+      const curE = (px / plotW) * maxE;
+      // Continuous 2D Boltzmann distribution is purely exponential
+      const normH = Math.exp(-curE / (kT || 1)) * (plotH * 0.95);
+      const graphX = padL + px;
+      const graphY = padT + plotH - normH;
+
+      if (px === 0) ctxHist.moveTo(graphX, graphY);
+      else ctxHist.lineTo(graphX, graphY);
+    }
+    ctxHist.stroke();
+
+    // Axis Labels
+    ctxHist.fillStyle = '#94a3b8';
+    ctxHist.font = '11px monospace';
+    ctxHist.textAlign = 'center';
+    ctxHist.fillText('Kinetic Energy State E →', padL + plotW / 2, padT + plotH + 32);
+
+    ctxHist.save();
+    ctxHist.translate(16, padT + plotH / 2);
+    ctxHist.rotate(-Math.PI / 2);
+    ctxHist.fillText('Population N(E) →', 0, 0);
+    ctxHist.restore();
+
+    ctxHist.textAlign = 'left';
+    ctxHist.fillText('E ≈ 0 (Dominant)', padL, padT + plotH + 16);
+    ctxHist.textAlign = 'right';
+    ctxHist.fillText('High E (Tail)', w - padR, padT + plotH + 16);
+  }
+
+  let lastTime = 0;
+
+  function loop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min((timestamp - lastTime) / 1000, 0.035);
+    lastTime = timestamp;
+
+    const speed = parseFloat(speedSlider.value);
+
+    if (isPlaying) {
+      // Multi-step sub-integration for high-speed collision accuracy
+      const subSteps = 6;
+      const stepDt = (dt * speed) / subSteps;
+      for (let s = 0; s < subSteps; s++) {
+        updatePhysics(stepDt);
+      }
+    }
+
+    let totalE = 0;
+    particles.forEach(p => { totalE += p.energy; });
+    const meanE = totalE / N;
+
+    drawChamber(meanE);
+    drawHistogram(meanE);
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

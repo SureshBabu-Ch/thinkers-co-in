@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+  Vasireddy Venkatadri International Technological University. 
+  Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+-->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Molecular Degrees of Freedom (DoF) Interactive Simulation</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --accent: #38bdf8;
+      --trans-col: #38bdf8; /* Cyan */
+      --rot-col: #34d399;   /* Green */
+      --vib-col: #fbbf24;   /* Amber */
+      --tot-col: #c084fc;   /* Purple */
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+    }
+
+    .container {
+      max-width: 1220px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* Live DoF Banner */
+    .dof-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .dof-banner { grid-template-columns: 1fr 1fr; }
+    }
+
+    .dof-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .dof-card span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .dof-card strong {
+      font-size: 1.45rem;
+      font-family: monospace;
+      color: #fff;
+    }
+
+    .dof-card small {
+      font-size: 0.74rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+    }
+
+    /* Controls Toolbar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 12px 18px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+    }
+
+    select {
+      background: #090d16;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 5px;
+      outline: none;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .axis-btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .toggle-btn {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.82rem;
+      transition: all 0.2s ease;
+    }
+
+    .toggle-btn:hover { background: #334155; color: #fff; }
+    
+    .toggle-btn.active.trans-btn {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--trans-col);
+      color: var(--trans-col);
+    }
+
+    .toggle-btn.active.rot-btn {
+      background: rgba(52, 211, 153, 0.2);
+      border-color: var(--rot-col);
+      color: var(--rot-col);
+    }
+
+    .toggle-btn.active.vib-btn {
+      background: rgba(251, 191, 36, 0.2);
+      border-color: var(--vib-col);
+      color: var(--vib-col);
+    }
+
+    .toggle-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: #334155 !important;
+      background: #0f172a !important;
+      color: #64748b !important;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 1.02rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      padding-bottom: 8px;
+    }
+
+    canvas {
+      background: #050811;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.82rem;
+      margin-top: 10px;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .theory-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .theory-card h3 {
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-size: 0.98rem;
+    }
+
+    .math-step-box {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 0.92rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Molecular Degrees of Freedom (DoF) Calculation Simulation</h1>
+    <p>Select molecular geometry and toggle individual components (X, Y, Z translations, tumbling rotations, and vibrational modes) with real-time coordinate summation.</p>
+  </header>
+
+  <!-- Live Calculated DoF Summary Banner -->
+  <div class="dof-banner">
+    <div class="dof-card" style="border-top: 3px solid var(--trans-col);">
+      <span>Active Translational DoF</span>
+      <strong id="statTrans" style="color:var(--trans-col);">3</strong>
+      <small id="statTransDesc">X, Y, Z active</small>
+    </div>
+    <div class="dof-card" style="border-top: 3px solid var(--rot-col);">
+      <span>Active Rotational DoF</span>
+      <strong id="statRot" style="color:var(--rot-col);">2</strong>
+      <small id="statRotDesc">Axes 1 &amp; 2 active</small>
+    </div>
+    <div class="dof-card" style="border-top: 3px solid var(--vib-col);">
+      <span>Active Vibrational DoF</span>
+      <strong id="statVib" style="color:var(--vib-col);">2</strong>
+      <small id="statVibDesc">1 Mode &times; 2 Coordinates</small>
+    </div>
+    <div class="dof-card" style="border-top: 3px solid var(--tot-col);">
+      <span>Total Active Degrees of Freedom</span>
+      <strong id="statTotal" style="color:var(--tot-col);">f = 7</strong>
+      <small id="statMaxThreshold">Max for Molecule: 7</small>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tool-group">
+      <label><b>Molecular Geometry:</b></label>
+      <select id="molSelect">
+        <option value="mono">Monoatomic (He, Ar) — 3 Trans</option>
+        <option value="diatomic_rigid">Diatomic Rigid (O₂, N₂ at 300K) — 3 Trans + 2 Rot</option>
+        <option value="diatomic_vib" selected>Diatomic Vibrating (High T) — 3 Trans + 2 Rot + 2 Vib</option>
+        <option value="poly_linear">Linear Polyatomic (CO₂) — 3 Trans + 2 Rot + 4 Vib</option>
+        <option value="poly_nonlinear">Non-Linear Polyatomic (H₂O) — 3 Trans + 3 Rot + 6 Vib</option>
+      </select>
+    </div>
+
+    <!-- Translation Toggles -->
+    <div class="tool-group">
+      <label><b>Translation:</b></label>
+      <div class="axis-btn-group">
+        <button class="toggle-btn active trans-btn" id="btnTx">X</button>
+        <button class="toggle-btn active trans-btn" id="btnTy">Y</button>
+        <button class="toggle-btn active trans-btn" id="btnTz">Z</button>
+      </div>
+    </div>
+
+    <!-- Rotation Toggles -->
+    <div class="tool-group">
+      <label><b>Rotation:</b></label>
+      <div class="axis-btn-group">
+        <button class="toggle-btn active rot-btn" id="btnR1">Rot 1</button>
+        <button class="toggle-btn active rot-btn" id="btnR2">Rot 2</button>
+        <button class="toggle-btn rot-btn" id="btnR3" disabled>Rot 3</button>
+      </div>
+    </div>
+
+    <!-- Vibration Toggle -->
+    <div class="tool-group">
+      <label><b>Vibration:</b></label>
+      <button class="toggle-btn active vib-btn" id="btnVib">Vib Modes</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span>3D Spatial Visualization of Molecular Movement</span>
+      <span style="font-size:0.82rem; color:var(--muted); font-weight:normal;" id="stateLabel">Diatomic Vibrating Active</span>
+    </h2>
+    <canvas id="molCanvas" width="940" height="460"></canvas>
+    
+    <div class="legend-row">
+      <span><span class="legend-dot" style="background:#38bdf8;"></span><b>Center-of-Mass Translation</b> (Linear Drift along X, Y, Z)</span>
+      <span><span class="legend-dot" style="background:#34d399;"></span><b>Rigid Body Rotation</b> (Tumbling about Principal Axes)</span>
+      <span><span class="legend-dot" style="background:#fbbf24;"></span><b>Internuclear Vibration</b> (Spring Extension &amp; Compression)</span>
+      <span style="margin-left:auto; color:#a78bfa;">🟣 Real-Time Trajectory Track</span>
+    </div>
+  </div>
+
+  <div class="theory-card">
+    <h3>Exact Degree of Freedom (DoF) Calculation</h3>
+    <div class="math-step-box" id="calcBreakdown">
+      Counting Active Spatial &amp; Phase Space Coordinates:<br>
+      • Translation (Center of Mass): 3 coordinates (X, Y, Z)<br>
+      • Rotation (Principal Axes): 2 coordinates (Axes 1 &amp; 2)<br>
+      • Vibration (Modes &times; 2): 2 coordinates (1 Mode &times; [Kinetic + Potential])<br>
+      --------------------------------------------------<br>
+      Total Active Degrees of Freedom: f = 3 + 2 + 2 = 7 DoFs
+    </div>
+    <ul style="margin: 8px 0 8px 20px;">
+      <li><b>Translational DoF ($f_{\text{trans}} = 3$):</b> Every atom and molecule has 3 independent directions to drift through 3D space: $x, y, z$.</li>
+      <li><b>Rotational DoF ($f_{\text{rot}}$):</b> Linear molecules have <b>2 rotational axes</b> perpendicular to their bond axis ($I_{\parallel} \approx 0$). Non-linear molecules tumble in all 3 dimensions, possessing <b>3 rotational axes</b>.</li>
+      <li><b>Vibrational Coordinates ($2 \times \text{Modes}$):</b> Each normal vibrational mode counts as <b>2 degrees of freedom</b> because it requires both a kinetic coordinate ($\frac{1}{2}\mu v^2$) and a potential spring coordinate ($\frac{1}{2}kx^2$).</li>
+      <li><b>Equipartition Principle:</b> In thermal equilibrium, every single one of these active independent degrees of freedom receives an identical share of motion without preference.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>© All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.</p>
+    <p style="margin-top: 4px;">Mobile: 9000837556 | Email: sureshbabuchallari@gmail.com</p>
+  </footer>
+</div>
+
+<script>
+  const canvas = document.getElementById('molCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const molSelect = document.getElementById('molSelect');
+  const btnTx = document.getElementById('btnTx');
+  const btnTy = document.getElementById('btnTy');
+  const btnTz = document.getElementById('btnTz');
+  const btnR1 = document.getElementById('btnR1');
+  const btnR2 = document.getElementById('btnR2');
+  const btnR3 = document.getElementById('btnR3');
+  const btnVib = document.getElementById('btnVib');
+
+  const statTrans = document.getElementById('statTrans');
+  const statTransDesc = document.getElementById('statTransDesc');
+  const statRot = document.getElementById('statRot');
+  const statRotDesc = document.getElementById('statRotDesc');
+  const statVib = document.getElementById('statVib');
+  const statVibDesc = document.getElementById('statVibDesc');
+  const statTotal = document.getElementById('statTotal');
+  const statMaxThreshold = document.getElementById('statMaxThreshold');
+  const calcBreakdown = document.getElementById('calcBreakdown');
+  const stateLabel = document.getElementById('stateLabel');
+
+  // Toggle states
+  let tx = true, ty = true, tz = true;
+  let r1 = true, r2 = true, r3 = false;
+  let vib = true;
+
+  // Preset definitions
+  const presets = {
+    mono: {
+      name: "Monoatomic (He, Ar)",
+      maxTrans: 3, maxRot: 0, maxVibModes: 0, maxTotal: 3,
+      defTx: true, defTy: true, defTz: true,
+      defR1: false, defR2: false, defR3: false,
+      defVib: false,
+      allowR1: false, allowR2: false, allowR3: false, allowVib: false
+    },
+    diatomic_rigid: {
+      name: "Diatomic Rigid (O₂, N₂ at 300K)",
+      maxTrans: 3, maxRot: 2, maxVibModes: 0, maxTotal: 5,
+      defTx: true, defTy: true, defTz: true,
+      defR1: true, defR2: true, defR3: false,
+      defVib: false,
+      allowR1: true, allowR2: true, allowR3: false, allowVib: false
+    },
+    diatomic_vib: {
+      name: "Diatomic Vibrating (High T)",
+      maxTrans: 3, maxRot: 2, maxVibModes: 1, maxTotal: 7, // 1 mode * 2 = 2 coords
+      defTx: true, defTy: true, defTz: true,
+      defR1: true, defR2: true, defR3: false,
+      defVib: true,
+      allowR1: true, allowR2: true, allowR3: false, allowVib: true
+    },
+    poly_linear: {
+      name: "Linear Polyatomic (CO₂)",
+      maxTrans: 3, maxRot: 2, maxVibModes: 2, maxTotal: 9, // 2 modes * 2 = 4 coords
+      defTx: true, defTy: true, defTz: true,
+      defR1: true, defR2: true, defR3: false,
+      defVib: true,
+      allowR1: true, allowR2: true, allowR3: false, allowVib: true
+    },
+    poly_nonlinear: {
+      name: "Non-Linear Polyatomic (H₂O)",
+      maxTrans: 3, maxRot: 3, maxVibModes: 3, maxTotal: 12, // 3 modes * 2 = 6 coords
+      defTx: true, defTy: true, defTz: true,
+      defR1: true, defR2: true, defR3: true,
+      defVib: true,
+      allowR1: true, allowR2: true, allowR3: true, allowVib: true
+    }
+  };
+
+  let curPreset = presets.diatomic_vib;
+  let trail = [];
+
+  function applyPreset(p) {
+    curPreset = p;
+    tx = p.defTx; ty = p.defTy; tz = p.defTz;
+    r1 = p.defR1; r2 = p.defR2; r3 = p.defR3;
+    vib = p.defVib;
+
+    btnR1.disabled = !p.allowR1;
+    btnR2.disabled = !p.allowR2;
+    btnR3.disabled = !p.allowR3;
+    btnVib.disabled = !p.allowVib;
+
+    trail = [];
+    updateDoFDisplay();
+  }
+
+  function updateDoFDisplay() {
+    btnTx.classList.toggle('active', tx);
+    btnTy.classList.toggle('active', ty);
+    btnTz.classList.toggle('active', tz);
+
+    btnR1.classList.toggle('active', r1 && curPreset.allowR1);
+    btnR2.classList.toggle('active', r2 && curPreset.allowR2);
+    btnR3.classList.toggle('active', r3 && curPreset.allowR3);
+
+    btnVib.classList.toggle('active', vib && curPreset.allowVib);
+
+    // Coordinate Counting
+    const activeTransCount = (tx ? 1 : 0) + (ty ? 1 : 0) + (tz ? 1 : 0);
+    const activeRotCount = (r1 && curPreset.allowR1 ? 1 : 0) + 
+                           (r2 && curPreset.allowR2 ? 1 : 0) + 
+                           (r3 && curPreset.allowR3 ? 1 : 0);
+    
+    // Each vibrational mode has 2 coordinates (Kinetic + Potential)
+    const activeVibCoords = (vib && curPreset.allowVib) ? curPreset.maxVibModes * 2 : 0;
+    const totalActiveDoF = activeTransCount + activeRotCount + activeVibCoords;
+
+    // Update Banner Numbers
+    statTrans.innerText = activeTransCount;
+    statTransDesc.innerText = `${activeTransCount} of 3 directions active`;
+
+    statRot.innerText = activeRotCount;
+    statRotDesc.innerText = `${activeRotCount} of ${curPreset.maxRot} axes active`;
+
+    statVib.innerText = activeVibCoords;
+    statVibDesc.innerText = activeVibCoords > 0 ? `${curPreset.maxVibModes} Mode(s) × 2 Coords` : 'Frozen / Inactive';
+
+    statTotal.innerText = `f = ${totalActiveDoF}`;
+    statMaxThreshold.innerText = `Max for Molecule: ${curPreset.maxTotal}`;
+    stateLabel.innerText = `${curPreset.name} (Active: ${totalActiveDoF} DoFs)`;
+
+    // Detailed Math Card Breakdown
+    calcBreakdown.innerHTML = 
+      `Counting Active Spatial & Phase Space Coordinates:<br>` +
+      `• Translation: <b>${activeTransCount} DoF</b> (X: ${tx?1:0}, Y: ${ty?1:0}, Z: ${tz?1:0})<br>` +
+      `• Rotation: <b>${activeRotCount} DoF</b> (${activeRotCount} of ${curPreset.maxRot} axes enabled)<br>` +
+      `• Vibration: <b>${activeVibCoords} DoF</b> (${(vib && curPreset.allowVib) ? curPreset.maxVibModes : 0} Mode(s) × 2 [Kin + Pot])<br>` +
+      `--------------------------------------------------<br>` +
+      `Total Active Degrees of Freedom: <b>f = ${activeTransCount} + ${activeRotCount} + ${activeVibCoords} = ${totalActiveDoF} DoF</b> (Max possible = ${curPreset.maxTotal})`;
+  }
+
+  // Event Listeners
+  molSelect.onchange = () => applyPreset(presets[molSelect.value]);
+
+  btnTx.onclick = () => { tx = !tx; updateDoFDisplay(); };
+  btnTy.onclick = () => { ty = !ty; updateDoFDisplay(); };
+  btnTz.onclick = () => { tz = !tz; updateDoFDisplay(); };
+
+  btnR1.onclick = () => { if (curPreset.allowR1) { r1 = !r1; updateDoFDisplay(); } };
+  btnR2.onclick = () => { if (curPreset.allowR2) { r2 = !r2; updateDoFDisplay(); } };
+  btnR3.onclick = () => { if (curPreset.allowR3) { r3 = !r3; updateDoFDisplay(); } };
+
+  btnVib.onclick = () => { if (curPreset.allowVib) { vib = !vib; updateDoFDisplay(); } };
+
+  // 3D pseudo-isometric projection
+  const proj = {
+    xCos: 1.0,  xSin: 0.0,
+    yCos: 0.0,  ySin: -1.0,
+    zCos: -0.55, zSin: 0.35
+  };
+
+  function project3D(x, y, z, cx, cy) {
+    return {
+      x: cx + (x * proj.xCos) + (y * proj.yCos) + (z * proj.zCos),
+      y: cy + (x * proj.xSin) + (y * proj.ySin) + (z * proj.zSin)
+    };
+  }
+
+  function drawLine3D(x1, y1, z1, x2, y2, z2, cx, cy, color, width = 1.5, dashed = false) {
+    const p1 = project3D(x1, y1, z1, cx, cy);
+    const p2 = project3D(x2, y2, z2, cx, cy);
+    ctx.beginPath();
+    if (dashed) ctx.setLineDash([4, 4]);
+    else ctx.setLineDash([]);
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  let simTime = 0;
+  let lastTimestamp = 0;
+
+  function render(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
+
+    simTime += dt * 2.5;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const cy = h / 2 + 10;
+    const transAmp = 100;
+
+    // 1. Draw 3D Coordinate Reference Axes
+    drawLine3D(-190, 0, 0, 190, 0, 0, cx, cy, tx ? '#38bdf8' : '#334155', tx ? 2.2 : 1);
+    drawLine3D(0, -170, 0, 0, 170, 0, cx, cy, ty ? '#34d399' : '#334155', ty ? 2.2 : 1);
+    drawLine3D(0, 0, -170, 0, 0, 170, cx, cy, tz ? '#fbbf24' : '#334155', tz ? 2.2 : 1);
+
+    const lblX = project3D(205, 0, 0, cx, cy);
+    const lblY = project3D(0, 185, 0, cx, cy);
+    const lblZ = project3D(0, 0, 185, cx, cy);
+
+    ctx.font = 'bold 11px monospace';
+    ctx.fillStyle = tx ? '#38bdf8' : '#64748b';
+    ctx.fillText('+X Axis', lblX.x, lblX.y + 4);
+
+    ctx.fillStyle = ty ? '#34d399' : '#64748b';
+    ctx.fillText('+Y Axis', lblY.x - 20, lblY.y - 8);
+
+    ctx.fillStyle = tz ? '#fbbf24' : '#64748b';
+    ctx.fillText('+Z Axis (Depth)', lblZ.x - 30, lblZ.y + 16);
+
+    // 2. Translational Center of Mass Position
+    const posX = tx ? transAmp * Math.sin(simTime * 0.9) : 0;
+    const posY = ty ? transAmp * Math.cos(simTime * 1.2) : 0;
+    const posZ = tz ? transAmp * Math.sin(simTime * 0.7) : 0;
+
+    // Record Center-of-Mass Trail
+    const cmPt = project3D(posX, posY, posZ, cx, cy);
+    trail.push(cmPt);
+    if (trail.length > 55) trail.shift();
+
+    if (trail.length > 1) {
+      ctx.lineWidth = 1.8;
+      for (let i = 0; i < trail.length - 1; i++) {
+        const alpha = (i / trail.length) * 0.7;
+        ctx.strokeStyle = `rgba(192, 132, 252, ${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(trail[i].x, trail[i].y);
+        ctx.lineTo(trail[i + 1].x, trail[i + 1].y);
+        ctx.stroke();
+      }
+    }
+
+    // 3. Rotational Angles
+    const ang1 = (r1 && curPreset.allowR1) ? simTime * 1.8 : 0;
+    const ang2 = (r2 && curPreset.allowR2) ? simTime * 1.3 : 0;
+    const ang3 = (r3 && curPreset.allowR3) ? simTime * 2.1 : 0;
+
+    // 4. Vibrational Spring Displacement
+    const isVibrating = vib && curPreset.allowVib;
+    const vibDisp = isVibrating ? 12 * Math.sin(simTime * 4.5) : 0;
+    const bondLen = 38 + vibDisp;
+
+    // Local 3D rotation transform about molecule CM
+    function transformLocal(lx, ly, lz) {
+      // Rotate around X (ang1)
+      let y1 = ly * Math.cos(ang1) - lz * Math.sin(ang1);
+      let z1 = ly * Math.sin(ang1) + lz * Math.cos(ang1);
+      let x1 = lx;
+
+      // Rotate around Y (ang2)
+      let x2 = x1 * Math.cos(ang2) + z1 * Math.sin(ang2);
+      let z2 = -x1 * Math.sin(ang2) + z1 * Math.cos(ang2);
+      let y2 = y1;
+
+      // Rotate around Z (ang3)
+      let x3 = x2 * Math.cos(ang3) - y2 * Math.sin(ang3);
+      let y3 = x2 * Math.sin(ang3) + y2 * Math.cos(ang3);
+      let z3 = z2;
+
+      return project3D(posX + x3, posY + y3, posZ + z3, cx, cy);
+    }
+
+    // 5. Draw Molecule Atoms & Bonds
+    if (molSelect.value === 'mono') {
+      // Single atom
+      const pAtom = project3D(posX, posY, posZ, cx, cy);
+      drawAtom(pAtom.x, pAtom.y, 14, '#38bdf8');
+    } else if (molSelect.value === 'poly_nonlinear') {
+      // Non-linear bent H2O molecule
+      const pO = transformLocal(0, 8, 0);
+      const pH1 = transformLocal(-bondLen * 0.75, -bondLen * 0.6, 0);
+      const pH2 = transformLocal(bondLen * 0.75, -bondLen * 0.6, 0);
+
+      drawBond(pO.x, pO.y, pH1.x, pH1.y);
+      drawBond(pO.x, pO.y, pH2.x, pH2.y);
+
+      drawAtom(pO.x, pO.y, 13, '#f87171');
+      drawAtom(pH1.x, pH1.y, 8, '#38bdf8');
+      drawAtom(pH2.x, pH2.y, 8, '#38bdf8');
+    } else if (molSelect.value === 'poly_linear') {
+      // Linear triatomic CO2 molecule (O = C = O)
+      const pC = transformLocal(0, 0, 0);
+      const pO1 = transformLocal(-bondLen, 0, 0);
+      const pO2 = transformLocal(bondLen, 0, 0);
+
+      drawBond(pO1.x, pO1.y, pO2.x, pO2.y);
+      drawAtom(pC.x, pC.y, 11, '#94a3b8');
+      drawAtom(pO1.x, pO1.y, 12, '#f87171');
+      drawAtom(pO2.x, pO2.y, 12, '#f87171');
+    } else {
+      // Diatomic molecule (Rigid or Vibrating)
+      const pA1 = transformLocal(-bondLen, 0, 0);
+      const pA2 = transformLocal(bondLen, 0, 0);
+
+      drawBond(pA1.x, pA1.y, pA2.x, pA2.y);
+      drawAtom(pA1.x, pA1.y, 12, '#38bdf8');
+      drawAtom(pA2.x, pA2.y, 12, '#34d399');
+
+      // Spring coil indicator for vibrational mode
+      if (isVibrating) {
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.8)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc((pA1.x + pA2.x) / 2, (pA1.y + pA2.y) / 2, 8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  function drawAtom(x, y, r, color) {
+    const grad = ctx.createRadialGradient(x, y, 1, x, y, r);
+    grad.addColorStop(0, '#fff');
+    grad.addColorStop(0.4, color);
+    grad.addColorStop(1, 'rgba(0,0,0,0.7)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+
+  function drawBond(x1, y1, x2, y2) {
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  applyPreset(presets.diatomic_vib);
+  requestAnimationFrame(render);
+</script>
+</body>
+</html>
