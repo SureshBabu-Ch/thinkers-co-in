@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Space-Based Observation of Extraterrestrial Solar Radiation (AM0)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #0b0f19;
+      color: #ecf0f1;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 18px 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 20px;
+      color: #f1c40f;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #95a5a6;
+      margin-top: 4px;
+    }
+    .canvas-container {
+      background: #05070d;
+      border: 1px solid #1e272e;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    canvas {
+      display: block;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 14px;
+    }
+    .btn {
+      background-color: #1e272e;
+      border: 1px solid #f1c40f;
+      color: #f1c40f;
+      padding: 8px 22px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background-color: #f1c40f;
+      color: #0b0f19;
+    }
+    .shortcut-hint {
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+    footer {
+      margin-top: 16px;
+      text-align: center;
+      max-width: 950px;
+      font-size: 12px;
+      color: #a4b0be;
+      font-style: italic;
+      background: #141a24;
+      border: 1px solid #2f3542;
+      border-radius: 6px;
+      padding: 7px 18px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Space-Based Observation of Extraterrestrial Solar Radiation (AM0)</h1>
+    <div class="subtitle">Direct Vacuum Measurement at Sun-Earth L1 vs. Planck's Blackbody Radiance Law</div>
+  </header>
+
+  <div class="canvas-container">
+    <canvas id="simCanvas" width="1120" height="480"></canvas>
+  </div>
+
+  <div class="controls">
+    <button id="pauseBtn" class="btn">⏸ Pause</button>
+    <span class="shortcut-hint">Press <b>Spacebar</b> to toggle pause / play</span>
+  </div>
+
+  <footer>
+    &copy; All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+    Vasireddy Venkatadri International Technological University. 
+    Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+  </footer>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    // --- Physical Constants & Planck Calculations ---
+    const h = 6.62607015e-34;
+    const c = 2.99792458e8;
+    const kB = 1.380649e-23;
+    const T_sun = 5778; // K
+    const lamMax_nm = (2.89777e-3 / T_sun) * 1e9; // ~501.5 nm
+
+    function planckRadiance(lam_nm, T) {
+      const lam_m = lam_nm * 1e-9;
+      const c1 = 2 * h * c * c;
+      const c2 = (h * c) / (kB * T);
+      const intensity = c1 / (Math.pow(lam_m, 5) * (Math.exp(c2 / lam_m) - 1));
+      return (intensity * 1e-9) / 1e3; // kW / (m^2 nm sr)
+    }
+
+    const lamMin = 100;
+    const lamMaxRange = 2500;
+    const numPoints = 300;
+    const spectralData = [];
+    let maxRadiance = 0;
+
+    for (let i = 0; i <= numPoints; i++) {
+      const l = lamMin + (i / numPoints) * (lamMaxRange - lamMin);
+      const val = planckRadiance(l, T_sun);
+      if (val > maxRadiance) maxRadiance = val;
+      spectralData.push({ lam: l, rad: val });
+    }
+
+    // --- Starfield Initialization ---
+    const stars = [];
+    for (let i = 0; i < 70; i++) {
+      stars.push({
+        x: Math.random() * 520 + 10,
+        y: Math.random() * 440 + 20,
+        r: Math.random() * 1.5 + 0.5,
+        alpha: Math.random() * 0.6 + 0.3
+      });
+    }
+
+    // --- Procedural Continents for the Spinning Earth ---
+    const landmasses = [
+      { phi: 0.3,  theta: 0.35, r: 0.38 }, // Eurasia / Asia
+      { phi: 0.6,  theta: -0.15, r: 0.32 }, // Africa
+      { phi: 1.6,  theta: -0.40, r: 0.28 }, // Australia
+      { phi: 3.3,  theta: 0.45, r: 0.40 }, // North America
+      { phi: 3.7,  theta: -0.25, r: 0.34 }, // South America
+      { phi: 5.2,  theta: 0.55, r: 0.25 }, // Europe / Greenland
+      { phi: 2.1,  theta: 0.20, r: 0.22 }  // Pacific islands
+    ];
+
+    // --- Animation State ---
+    let isPaused = false;
+    let frame = 0;
+    let earthSpinAngle = 0;
+    const totalFrames = 180;
+
+    // --- Layout Coordinates ---
+    const spaceW = 540;
+    const plotX = 570;
+    const plotY = 60;
+    const plotW = 510;
+    const plotH = 370;
+
+    function drawSpinningEarth(cx, cy, R) {
+      ctx.save();
+
+      // Atmospheric Rayleigh-scattering corona
+      const gradAtmo = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R * 1.35);
+      gradAtmo.addColorStop(0, "rgba(0, 168, 255, 0.45)");
+      gradAtmo.addColorStop(0.6, "rgba(0, 168, 255, 0.18)");
+      gradAtmo.addColorStop(1, "rgba(0, 168, 255, 0)");
+      ctx.fillStyle = gradAtmo;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * 1.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Clip inside the Earth's spherical disk
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.clip();
+
+      // 1. Ocean Base
+      const oceanGrad = ctx.createRadialGradient(cx - R * 0.4, cy - R * 0.3, R * 0.2, cx, cy, R);
+      oceanGrad.addColorStop(0, "#1b4d89");
+      oceanGrad.addColorStop(1, "#0a1931");
+      ctx.fillStyle = oceanGrad;
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+      // 2. Spinning Continents
+      for (const land of landmasses) {
+        let dPhi = ((land.phi + earthSpinAngle) % (2 * Math.PI));
+        if (dPhi > Math.PI) dPhi -= 2 * Math.PI;
+
+        if (Math.abs(dPhi) < Math.PI / 2 + land.r) {
+          const projX = cx + R * Math.cos(land.theta) * Math.sin(dPhi);
+          const projY = cy - R * Math.sin(land.theta);
+          const foreshortening = Math.cos(dPhi);
+
+          if (foreshortening > 0) {
+            ctx.fillStyle = "#27ae60";
+            ctx.beginPath();
+            ctx.ellipse(
+              projX,
+              projY,
+              Math.max(2, R * land.r * foreshortening),
+              R * land.r,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+          }
+        }
+      }
+
+      // 3. Cloud Bands
+      const cloudPhase = (earthSpinAngle * 1.2) % (Math.PI * 2);
+      for (let c = -1; c <= 1; c++) {
+        let cOffset = ((cloudPhase + c * 2.1) % (Math.PI * 2)) - Math.PI;
+        if (Math.abs(cOffset) < Math.PI / 2 + 0.4) {
+          const cloudX = cx + R * 0.8 * Math.sin(cOffset);
+          const cloudY = cy + c * 10 - 6;
+          ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
+          ctx.beginPath();
+          ctx.ellipse(cloudX, cloudY, Math.max(3, 18 * Math.cos(cOffset)), 6, 0.15, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 4. Day/Night Terminator Shading (Sun on the left)
+      const nightShade = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
+      nightShade.addColorStop(0, "rgba(0, 0, 0, 0)");
+      nightShade.addColorStop(0.48, "rgba(0, 0, 0, 0.15)");
+      nightShade.addColorStop(0.75, "rgba(0, 0, 0, 0.75)");
+      nightShade.addColorStop(1, "rgba(0, 0, 0, 0.94)");
+      ctx.fillStyle = nightShade;
+      ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+      // Polar Ice Cap
+      ctx.fillStyle = "rgba(240, 248, 255, 0.65)";
+      ctx.beginPath();
+      ctx.ellipse(cx, cy - R + 3, R * 0.45, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Atmosphere Rim Stroke
+      ctx.strokeStyle = "rgba(112, 161, 255, 0.7)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawSpaceScene(timeFrac) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, spaceW, canvas.height);
+      ctx.clip();
+
+      // Title
+      ctx.fillStyle = "#ecf0f1";
+      ctx.font = "bold 13px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Vantage Point: Beyond Earth's Atmosphere (L1 Orbit)", spaceW / 2, 34);
+
+      // Stars
+      for (const st of stars) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${st.alpha})`;
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const sunX = 35;
+      const sunY = 240;
+      const satX = 300;
+      const satY = 240;
+      const earthX = 475;
+      const earthY = 240;
+      const earthR = 34;
+
+      // 1. Sun
+      const gradCorona = ctx.createRadialGradient(sunX, sunY, 20, sunX, sunY, 80);
+      gradCorona.addColorStop(0, "rgba(243, 156, 18, 0.8)");
+      gradCorona.addColorStop(0.5, "rgba(230, 126, 34, 0.3)");
+      gradCorona.addColorStop(1, "rgba(230, 126, 34, 0)");
+      ctx.fillStyle = gradCorona;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 80, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 40, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 11px -apple-system, sans-serif";
+      ctx.fillText("Sun (5778 K)", sunX + 15, sunY + 62);
+
+      // 2. Spinning Earth
+      drawSpinningEarth(earthX, earthY, earthR);
+
+      ctx.fillStyle = "#4bcffa";
+      ctx.font = "bold 11px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Earth (Spinning)", earthX, earthY + 54);
+      ctx.font = "10px -apple-system, sans-serif";
+      ctx.fillStyle = "#8395a7";
+      ctx.fillText("(Atmosphere bypassed)", earthX, earthY + 68);
+
+      // 3. Beam Envelope
+      ctx.strokeStyle = "rgba(243, 156, 18, 0.25)";
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(sunX + 40, sunY - 30);
+      ctx.lineTo(satX - 14, satY - 10);
+      ctx.moveTo(sunX + 40, sunY + 30);
+      ctx.lineTo(satX - 14, satY + 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 4. Moving Photons
+      const numPhotons = 8;
+      const startX = sunX + 42;
+      const endX = satX - 15;
+      const dist = endX - startX;
+
+      for (let i = 0; i < numPhotons; i++) {
+        const offset = (timeFrac + i / numPhotons) % 1.0;
+        const px = startX + offset * dist;
+        const py = satY + Math.sin(px * 0.08 + frame * 0.15) * 5;
+        ctx.fillStyle = "#ffeaa7";
+        ctx.beginPath();
+        ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 5. Satellite (L1)
+      ctx.fillStyle = "#2980b9";
+      ctx.strokeStyle = "#70a1ff";
+      ctx.lineWidth = 1;
+      ctx.fillRect(satX - 6, satY - 42, 12, 28);
+      ctx.strokeRect(satX - 6, satY - 42, 12, 28);
+      ctx.fillRect(satX - 6, satY + 14, 12, 28);
+      ctx.strokeRect(satX - 6, satY + 14, 12, 28);
+
+      ctx.fillStyle = "#dcdde1";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.2;
+      ctx.fillRect(satX - 12, satY - 12, 24, 24);
+      ctx.strokeRect(satX - 12, satY - 12, 24, 24);
+
+      ctx.fillStyle = "#718093";
+      ctx.beginPath();
+      ctx.moveTo(satX - 12, satY - 7);
+      ctx.lineTo(satX - 22, satY - 11);
+      ctx.lineTo(satX - 22, satY + 11);
+      ctx.lineTo(satX - 12, satY + 7);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#eccc68";
+      ctx.font = "bold 11px -apple-system, sans-serif";
+      ctx.fillText("Solar Satellite (L1)", satX, satY - 50);
+      ctx.font = "10px -apple-system, sans-serif";
+      ctx.fillStyle = "#a4b0be";
+      ctx.fillText("Uncut Vacuum Beam", satX, satY - 37);
+
+      ctx.restore();
+    }
+
+    function drawPlot(currIndex) {
+      ctx.save();
+
+      // Divider line
+      ctx.strokeStyle = "#1e272e";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(spaceW + 10, 20);
+      ctx.lineTo(spaceW + 10, canvas.height - 20);
+      ctx.stroke();
+
+      // Plot Title
+      ctx.fillStyle = "#ecf0f1";
+      ctx.font = "bold 13px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Extraterrestrial Continuous Blackbody Spectrum", plotX + plotW / 2, 34);
+
+      // Visible Band (380 nm - 750 nm)
+      const xVisStart = plotX + ((380 - lamMin) / (lamMaxRange - lamMin)) * plotW;
+      const xVisEnd = plotX + ((750 - lamMin) / (lamMaxRange - lamMin)) * plotW;
+      ctx.fillStyle = "rgba(44, 62, 80, 0.45)";
+      ctx.fillRect(xVisStart, plotY, xVisEnd - xVisStart, plotH);
+
+      // Regime labels
+      ctx.font = "bold 10px -apple-system, sans-serif";
+      ctx.fillStyle = "#9b59b6";
+      ctx.fillText("UV", plotX + 30, plotY + 25);
+      ctx.fillStyle = "#1abc9c";
+      ctx.fillText("Visible", (xVisStart + xVisEnd) / 2, plotY + 25);
+      ctx.fillStyle = "#e74c3c";
+      ctx.fillText("Near Infrared (IR)", plotX + plotW - 70, plotY + 25);
+
+      // Grid Lines
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 3]);
+
+      for (let val = 500; val <= 2500; val += 500) {
+        const gx = plotX + ((val - lamMin) / (lamMaxRange - lamMin)) * plotW;
+        ctx.beginPath();
+        ctx.moveTo(gx, plotY);
+        ctx.lineTo(gx, plotY + plotH);
+        ctx.stroke();
+      }
+      for (let r = 5; r <= 20; r += 5) {
+        const gy = plotY + plotH - (r / (maxRadiance * 1.15)) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(plotX, gy);
+        ctx.lineTo(plotX + plotW, gy);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Axes Borders
+      ctx.strokeStyle = "#57606f";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(plotX, plotY);
+      ctx.lineTo(plotX, plotY + plotH);
+      ctx.lineTo(plotX + plotW, plotY + plotH);
+      ctx.stroke();
+
+      // Axis Ticks & Labels
+      ctx.fillStyle = "#a4b0be";
+      ctx.font = "10px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      for (let val = 500; val <= 2500; val += 500) {
+        const gx = plotX + ((val - lamMin) / (lamMaxRange - lamMin)) * plotW;
+        ctx.fillText(val, gx, plotY + plotH + 15);
+      }
+      ctx.fillText("Wavelength \u03BB (nm)", plotX + plotW / 2, plotY + plotH + 34);
+
+      ctx.textAlign = "right";
+      for (let r = 5; r <= 20; r += 5) {
+        const gy = plotY + plotH - (r / (maxRadiance * 1.15)) * plotH;
+        ctx.fillText(r, plotX - 8, gy + 3);
+      }
+
+      ctx.save();
+      ctx.translate(plotX - 35, plotY + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = "center";
+      ctx.fillText("Radiance I(\u03BB) [kW / (m\u00B2 nm sr)]", 0, 0);
+      ctx.restore();
+
+      // Trace Planck Radiance Curve
+      if (currIndex > 0) {
+        ctx.strokeStyle = "#f1c40f";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+
+        for (let i = 0; i <= currIndex; i++) {
+          const pt = spectralData[i];
+          const px = plotX + ((pt.lam - lamMin) / (lamMaxRange - lamMin)) * plotW;
+          const py = plotY + plotH - (pt.rad / (maxRadiance * 1.15)) * plotH;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        const headPt = spectralData[currIndex];
+        const hx = plotX + ((headPt.lam - lamMin) / (lamMaxRange - lamMin)) * plotW;
+        const hy = plotY + plotH - (headPt.rad / (maxRadiance * 1.15)) * plotH;
+        ctx.fillStyle = "#ff4757";
+        ctx.beginPath();
+        ctx.arc(hx, hy, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mark Wien's Peak when passed
+        if (headPt.lam >= lamMax_nm) {
+          const peakX = plotX + ((lamMax_nm - lamMin) / (lamMaxRange - lamMin)) * plotW;
+          const peakY = plotY + plotH - (planckRadiance(lamMax_nm, T_sun) / (maxRadiance * 1.15)) * plotH;
+
+          ctx.strokeStyle = "#ffa502";
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(peakX, plotY + plotH);
+          ctx.lineTo(peakX, peakY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = "#ffa502";
+          ctx.beginPath();
+          ctx.arc(peakX, peakY, 5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.textAlign = "left";
+          ctx.font = "bold 11px -apple-system, sans-serif";
+          ctx.fillText(`\u03BB_max \u2248 ${lamMax_nm.toFixed(1)} nm`, peakX + 12, peakY - 14);
+          ctx.fillStyle = "#ecf0f1";
+          ctx.fillText(`T \u2248 ${T_sun} K`, peakX + 12, peakY + 2);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const timeFrac = (frame % 60) / 60;
+      const currIdx = Math.min(
+        Math.floor((frame / totalFrames) * spectralData.length),
+        spectralData.length - 1
+      );
+
+      drawSpaceScene(timeFrac);
+      drawPlot(currIdx);
+
+      if (!isPaused) {
+        frame++;
+        earthSpinAngle += 0.022; // Smooth rotation
+        if (frame > totalFrames + 45) {
+          frame = 0; // Seamless loop
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    // --- Controls: Pause / Resume ---
+    function togglePause() {
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? "▶ Resume" : "⏸ Pause";
+    }
+
+    pauseBtn.addEventListener("click", togglePause);
+
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        togglePause();
+      }
+    });
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
