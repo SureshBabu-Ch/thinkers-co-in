@@ -47,7 +47,32 @@
         .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; }
         .card h3 { font-size: 16px; margin: 10px 0; }
         .card a { text-decoration: none; color: white; background-color: #e74c3c; padding: 8px 16px; border-radius: 6px; display: inline-block; }
-        .footer { background-color: #2c3e50; color: white; padding: 15px; text-align: center; margin-top: 20px; }
+        
+        .footer { 
+            background-color: #2c3e50; 
+            color: white; 
+            padding: 18px 15px; 
+            text-align: center; 
+            margin-top: 20px; 
+        }
+        .visit-badge {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #bdc3c7;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .visit-count {
+            color: #f1c40f;
+            font-weight: bold;
+            background: #1a252f;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #34495e;
+            font-family: monospace;
+            font-size: 13px;
+        }
     </style>
 
     <script>
@@ -82,7 +107,6 @@
     <button onclick="showTab('msc', this)">M.Sc Chemistry</button>
     <button onclick="showTab('metal', this)">Metallurgy & Materials</button>
     <button onclick="showTab('prog', this)">Programming</button>
-    <!-- NEW VIRTUAL LABS TAB -->
     <button onclick="showTab('vlabs', this)">VIRTUAL LABS</button>
     <button onclick="showTab('simulations', this)">Simulations</button>
 </div>
@@ -317,9 +341,30 @@ onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/zVmoZzfjiaM/hqdefaul
 
 </div>
 
+<!-- FOOTER WITH LIVE COUNTER -->
 <div class="footer">
-<p>© 2026 Thinkers | All Rights Reserved</p>
+    <p>© 2026 Thinkers | All Rights Reserved</p>
+    <div class="visit-badge">
+        <span>👁️ Total Visits:</span>
+        <span id="visit-counter" class="visit-count">...</span>
+    </div>
 </div>
+
+<script>
+    // Live visitor counter via privacy-focused CountAPI
+    fetch('https://api.counterapi.dev/v1/thinkers.co.in/visits/up')
+        .then(response => response.json())
+        .then(data => {
+            if (data && typeof data.count !== 'undefined') {
+                document.getElementById('visit-counter').innerText = data.count.toLocaleString();
+            } else {
+                document.getElementById('visit-counter').innerText = "Active";
+            }
+        })
+        .catch(() => {
+            document.getElementById('visit-counter').innerText = "Active";
+        });
+</script>
 
 </body>
 </html>
