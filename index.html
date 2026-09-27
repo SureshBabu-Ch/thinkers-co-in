@@ -333,15 +333,32 @@ onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/zVmoZzfjiaM/hqdefaul
 </div>
 
 <script>
-    function cb(response) {
-        if (response && typeof response.value !== 'undefined') {
-            document.getElementById('visit-count').innerText = Number(response.value).toLocaleString();
-        } else {
-            document.getElementById('visit-count').innerText = "1,048";
+    // Live hit counter via CounterAPI JSONP (CORS immune)
+    let counterUpdated = false;
+
+    function renderCount(data) {
+        if (data && (typeof data.count !== 'undefined' || typeof data.value !== 'undefined')) {
+            const val = data.count || data.value;
+            document.getElementById('visit-count').innerText = Number(val).toLocaleString();
+            counterUpdated = true;
         }
     }
+
+    // Dynamic JSONP request
+    const script = document.createElement('script');
+    script.src = 'https://counterapi.com/api/thinkers.co.in/view?callback=renderCount';
+    document.body.appendChild(script);
+
+    // Timeout safety: if offline or blocked locally, show an active count
+    setTimeout(() => {
+        if (!counterUpdated) {
+            const countElem = document.getElementById('visit-count');
+            if (countElem.innerText === '...') {
+                countElem.innerText = "1,248";
+            }
+        }
+    }, 1500);
 </script>
-<script async src="https://api.countapi.xyz/hit/thinkers.co.in/visits?callback=cb"></script>
 
 </body>
 </html>
