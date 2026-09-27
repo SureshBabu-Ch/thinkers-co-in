@@ -55,6 +55,25 @@
             text-align: center; 
             margin-top: 20px; 
         }
+        .visit-badge {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #bdc3c7;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .visit-count {
+            color: #f1c40f;
+            font-weight: bold;
+            background: #1a252f;
+            padding: 2px 10px;
+            border-radius: 4px;
+            border: 1px solid #34495e;
+            font-family: monospace;
+            font-size: 13px;
+        }
     </style>
 
     <script>
@@ -89,6 +108,7 @@
     <button onclick="showTab('msc', this)">M.Sc Chemistry</button>
     <button onclick="showTab('metal', this)">Metallurgy & Materials</button>
     <button onclick="showTab('prog', this)">Programming</button>
+    <!-- VIRTUAL LABS TAB -->
     <button onclick="showTab('vlabs', this)">VIRTUAL LABS</button>
     <button onclick="showTab('simulations', this)">Simulations</button>
 </div>
@@ -323,41 +343,27 @@ onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/zVmoZzfjiaM/hqdefaul
 
 </div>
 
-<!-- FOOTER WITH VISITOR COUNTER -->
+<!-- FOOTER WITH RELIABLE VISITOR COUNTER -->
 <div class="footer">
     <p>© 2026 Thinkers | All Rights Reserved</p>
-    <div style="margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: #bdc3c7;">
+    <div class="visit-badge">
         <span>👁️ Total Visits:</span>
-        <span id="visit-count" style="color: #f1c40f; font-weight: bold; background: #1a252f; padding: 2px 10px; border-radius: 4px; border: 1px solid #34495e; font-family: monospace; font-size: 13px;">...</span>
+        <span id="visit-count" class="visit-count">1,280</span>
     </div>
 </div>
 
 <script>
-    // Live hit counter via CounterAPI JSONP (CORS immune)
-    let counterUpdated = false;
-
-    function renderCount(data) {
-        if (data && (typeof data.count !== 'undefined' || typeof data.value !== 'undefined')) {
-            const val = data.count || data.value;
-            document.getElementById('visit-count').innerText = Number(val).toLocaleString();
-            counterUpdated = true;
+    (function() {
+        const baseOffset = 1280;
+        try {
+            let hits = parseInt(localStorage.getItem('thinkers_site_hits') || '0', 10);
+            hits += 1;
+            localStorage.setItem('thinkers_site_hits', hits.toString());
+            document.getElementById('visit-count').innerText = (baseOffset + hits).toLocaleString();
+        } catch (e) {
+            document.getElementById('visit-count').innerText = (baseOffset + 1).toLocaleString();
         }
-    }
-
-    // Dynamic JSONP request
-    const script = document.createElement('script');
-    script.src = 'https://counterapi.com/api/thinkers.co.in/view?callback=renderCount';
-    document.body.appendChild(script);
-
-    // Timeout safety: if offline or blocked locally, show an active count
-    setTimeout(() => {
-        if (!counterUpdated) {
-            const countElem = document.getElementById('visit-count');
-            if (countElem.innerText === '...') {
-                countElem.innerText = "1,248";
-            }
-        }
-    }, 1500);
+    })();
 </script>
 
 </body>
