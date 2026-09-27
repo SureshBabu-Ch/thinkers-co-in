@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Virtual Lab: Experimental Determination of Blackbody Radiation Spectrum</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #0b0f19;
+      color: #ecf0f1;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 21px;
+      color: #f1c40f;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #95a5a6;
+      margin-top: 3px;
+    }
+
+    .lab-container {
+      max-width: 1120px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    /* 1. TOP NAVIGATION */
+    .step-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      background: #141a24;
+      border: 1px solid #2f3542;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    .step-btn {
+      background-color: #1e272e;
+      border: 1px solid #485460;
+      color: #d2dae2;
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .step-btn:hover {
+      background-color: #2f3542;
+      border-color: #f1c40f;
+      color: #f1c40f;
+    }
+    .step-btn.active {
+      background-color: #f1c40f;
+      color: #0b0f19;
+      border-color: #f1c40f;
+      box-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+    }
+
+    /* 2. CONTROLLERS RIGHT BELOW STEPS */
+    .controls-strip {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 12px;
+    }
+    .ctrl-box {
+      background: #141a24;
+      border: 1px solid #2f3542;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .ctrl-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #00d2d3;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+    input[type=range] {
+      flex: 1;
+      accent-color: #f1c40f;
+    }
+    .action-btn {
+      background: #1e272e;
+      border: 1px solid #f1c40f;
+      color: #f1c40f;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .action-btn:hover {
+      background: #f1c40f;
+      color: #0b0f19;
+    }
+    .action-btn.active {
+      background: #f39c12;
+      color: #0b0f19;
+      box-shadow: 0 0 8px rgba(243, 156, 18, 0.6);
+      border-color: #f39c12;
+    }
+    .download-btn {
+      border-color: #2ed573;
+      color: #2ed573;
+    }
+    .download-btn:hover {
+      background: #2ed573;
+      color: #0b0f19;
+      box-shadow: 0 0 8px rgba(46, 213, 115, 0.5);
+    }
+
+    /* 3. WIDE APPARATUS STAGE */
+    .canvas-card {
+      background: #05070d;
+      border: 1px solid #1e272e;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 6px;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 480px;
+    }
+
+    /* 4. THEORETICAL & DESCRIPTIVE PANEL COMING DOWN */
+    .panel-card {
+      background: #141a24;
+      border: 1px solid #2f3542;
+      border-radius: 8px;
+      padding: 16px 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .panel-card h2 {
+      font-size: 16px;
+      color: #f1c40f;
+      border-bottom: 1px solid #2f3542;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-card h2 span.badge {
+      font-size: 11px;
+      background: #1e272e;
+      color: #00d2d3;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #00d2d3;
+    }
+    .panel-content {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #dcdde1;
+    }
+    .panel-content p {
+      margin-bottom: 8px;
+    }
+    .panel-content ul {
+      margin-left: 20px;
+      margin-bottom: 8px;
+    }
+    .panel-content li {
+      margin-bottom: 5px;
+    }
+    .panel-content b {
+      color: #ffda79;
+    }
+    .highlight-box {
+      background: rgba(241, 196, 15, 0.08);
+      border-left: 3px solid #f1c40f;
+      padding: 8px 14px;
+      margin: 8px 0;
+      border-radius: 0 4px 4px 0;
+      font-size: 13px;
+    }
+
+    footer {
+      margin-top: 14px;
+      text-align: center;
+      max-width: 1120px;
+      width: 100%;
+      font-size: 11.5px;
+      color: #a4b0be;
+      font-style: italic;
+      background: #141a24;
+      border: 1px solid #2f3542;
+      border-radius: 6px;
+      padding: 7px 18px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lab-container">
+    <header>
+      <h1>Experimental Mapping of Blackbody Radiation Spectrum</h1>
+      <div class="subtitle">Virtual Laboratory: Féry's Cavity, Rock Salt Spectrometry, Langley Bolometer & Planck Verification</div>
+    </header>
+
+    <!-- 1. Step Navigation -->
+    <div class="step-nav">
+      <button class="step-btn active" onclick="setStep(1)">Step 1: Féry's Blackbody</button>
+      <button class="step-btn" onclick="setStep(2)">Step 2: Collimator & Slit (S₁)</button>
+      <button class="step-btn" onclick="setStep(3)">Step 3: Rock Salt (NaCl) Prism</button>
+      <button class="step-btn" onclick="setStep(4)">Step 4: Dispersed Beam & Focus</button>
+      <button class="step-btn" onclick="setStep(5)">Step 5: Bolometer & Bridge</button>
+      <button class="step-btn" onclick="setStep(6)">Step 6: Recording the Bell Curve</button>
+    </div>
+
+    <!-- 2. Master Controllers Directly on Top -->
+    <div class="controls-strip">
+      <!-- Furnace Controller -->
+      <div class="ctrl-box">
+        <div class="ctrl-title">
+          <span>🔥 Furnace Temperature Controller (T)</span>
+          <span id="tempVal" style="color:#f1c40f; font-weight:bold;">1400 K</span>
+        </div>
+        <div class="slider-row">
+          <span style="color:#95a5a6; font-size:11px;">800 K</span>
+          <input type="range" id="tempSlider" min="800" max="2000" step="50" value="1400" oninput="onTempChange(this.value)">
+          <span style="color:#95a5a6; font-size:11px;">2000 K</span>
+        </div>
+        <div style="font-size:11px; color:#8395a7; margin-top:4px;">
+          Wien's Peak: <b id="wienPeakText" style="color:#eccc68;">λ_max ≈ 2070 nm</b> | Glow: <span id="glowDesc">Orange Incandescent</span>
+        </div>
+      </div>
+
+      <!-- Scanning & Export Bar -->
+      <div class="ctrl-box" id="scanControls">
+        <div class="ctrl-title">
+          <span>🛰️ Carriage Scanner & Data Export</span>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button id="autoZoomBtn" class="action-btn" onclick="toggleAutoZoom()">🔍 Auto Zoom: OFF</button>
+            <button id="downloadBtn" class="action-btn download-btn" onclick="downloadCSVData()">📥 Download CSV (Excel)</button>
+            <span id="lamVal" style="color:#f1c40f; font-weight:bold; margin-left:4px;">200 nm</span>
+          </div>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="lamSlider" min="200" max="3200" step="20" value="200" oninput="onSliderMove(this.value)">
+        </div>
+        <div style="font-size:11px; color:#8395a7; margin-top:4px;">
+          <span id="scanHint">Step 6 Active: Drag slider to sweep the detector carriage, or click <b>Download CSV</b> for lab assignments.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Experimental Setup Stage (Prominent & Wide) -->
+    <div class="canvas-card">
+      <canvas id="expCanvas" width="1080" height="470"></canvas>
+    </div>
+
+    <!-- 4. Deep Scientific Lecture & Reference Notes Below -->
+    <div class="panel-card">
+      <h2 id="stepTitle">Step 1: Féry's Blackbody Enclosure <span class="badge" id="stepBadge">Cavity Geometry</span></h2>
+      <div class="panel-content" id="stepContent">
+        <!-- Content populated dynamically -->
+      </div>
+    </div>
+
+    <footer>
+      &copy; All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+      Vasireddy Venkatadri International Technological University. 
+      Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('expCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let currentStep = 1;
+    let animFrame = 0;
+    let scanLam = 200;
+    let furnaceTemp = 1400; // K
+    let autoZoomEnabled = false;
+
+    // Physical Constants
+    const h = 6.626e-34;
+    const c = 3.0e8;
+    const kB = 1.38e-23;
+    const b_wien = 2.89777e-3; // m·K
+
+    function getWienPeak(T) {
+      return (b_wien / T) * 1e9; // nm
+    }
+
+    function planck(lam_nm, T) {
+      const lam_m = lam_nm * 1e-9;
+      const c1 = 2 * Math.PI * h * c * c;
+      const c2 = (h * c) / (kB * T);
+      const val = c1 / (Math.pow(lam_m, 5) * (Math.exp(c2 / lam_m) - 1));
+      return val * 1e-9 / 1e3;
+    }
+
+    const stepData = {
+      1: {
+        title: "Step 1: Féry's Blackbody Cavity",
+        badge: "Geometry over Chemistry",
+        html: `
+          <p><b>The Fundamental Limitation of Real Materials:</b> In nature, no substance acts as an ideal blackbody. All solid surfaces possess finite reflectivity, specular luster, and wavelength-dependent emissivity. Even pure lampblack reflects roughly 2–4% of incident radiation.</p>
+          <div class="highlight-box">
+            <b>Féry's Geometrical Solution:</b> Replaces material dependency with an enclosed hollow geometry. A double-walled hollow copper sphere coated internally with lampblack.
+          </div>
+          <ul>
+            <li><b>Tiny Pinhole Aperture (O):</b> Any beam entering the tiny aperture suffers repeated internal diffuse reflections. At each impact, ~98% of radiant energy is absorbed. After 4 to 5 reflections, 99.99% of energy is completely trapped ($\alpha \approx 1.0$). When thermally heated, the radiation leaking out through this pinhole represents pure, ideal blackbody emission.</li>
+            <li><b>Internal Conical Projection:</b> Machined on the inner wall directly opposite the aperture. Its pointed geometry ensures that normally incident light is reflected obliquely along the sphere's circumference rather than bouncing directly back out through the hole.</li>
+            <li><b>Temperature Control:</b> Adjust the temperature slider above to view the heating coils shift the interior radiance from dull red (800 K) to bright incandescent yellow-white (2000 K).</li>
+          </ul>
+        `
+      },
+      2: {
+        title: "Step 2: Collimating Lens & Slit (S₁)",
+        badge: "Parallel Beam Formation",
+        html: `
+          <p>Radiation escaping from the heated cavity pinhole diverges in all directions. To conduct quantitative spectrometry, this divergent flux must be organized into a sharp, coherent, parallel beam.</p>
+          <ul>
+            <li><b>Entrance Slit (S₁):</b> Precision micrometer brass jaws define an ultra-narrow, uniform vertical slice of radiation, preventing image blur across the optical axis.</li>
+            <li><b>Collimating Lens / Mirror (L₁):</b> Slit S₁ is positioned strictly at the principal focal point of lens L₁. The emerging rays form a planar wavefront of parallel light.</li>
+            <li><b>The Optical Material Constraint:</b> Standard optical glass cannot be used! Optical silicate glass has strong lattice absorption bands beyond 2.0 &mu;m, rendering it opaque to infrared radiation. Cleaved <b>Rock Salt (NaCl)</b> or <b>Fluorite (CaF₂)</b> crystal optics must be used.</li>
+          </ul>
+        `
+      },
+      3: {
+        title: "Step 3: The Rock Salt (NaCl) Dispersion Prism",
+        badge: "Infrared-Transparent Dispersion",
+        html: `
+          <p>The collimated parallel beam strikes the dispersing prism mounted on a precision rotating spectrometer table.</p>
+          <div class="highlight-box">
+            <b>Dispersion Physics (Cauchy's Law):</b> The refractive index $n(\lambda)$ decreases monotonically as wavelength increases.
+          </div>
+          <ul>
+            <li><b>Ultraviolet (UV):</b> Short wavelengths encounter the highest refractive index ($n_{\text{UV}}$) and suffer the <b>largest angle of deviation ($\delta_{\text{max}}$)</b>, bending steepest downward toward the prism base.</li>
+            <li><b>Infrared (IR):</b> Long wavelengths encounter the lowest refractive index ($n_{\text{IR}}$) and suffer the <b>minimum angle of deviation ($\delta_{\text{min}}$)</b>, remaining along the upper optical flank.</li>
+            <li><b>Optical Clearness:</b> Rock salt ($\text{NaCl}$) maintains high transmission from $0.2\,\mu\text{m}$ (UV) through the entire visible range and out to $16.0\,\mu\text{m}$ (Far-IR).</li>
+          </ul>
+        `
+      },
+      4: {
+        title: "Step 4: Spatial Separation & Focusing Lens (L₂)",
+        badge: "Focal Plane Array",
+        html: `
+          <p>The dispersed parallel bundles pass through a second rock salt lens <b>L₂</b>, which brings each individual wavelength to a discrete spatial focus along a linear focal plane.</p>
+          <ul>
+            <li><b>Spatial Sorting:</b> Infrared rays (least deviated) focus at the <b>top</b>; the visible spectrum (400–750 nm) focuses in the <b>center</b>; and ultraviolet rays (greatest deviation) focus at the <b>bottom</b>.</li>
+            <li><b>Exit Slit (S₂):</b> An adjustable vertical aperture isolates an ultra-narrow wavelength slice ($\Delta\lambda$) at a time, blocking off-axis components from illuminating the detector.</li>
+          </ul>
+        `
+      },
+      5: {
+        title: "Step 5: Langley's Bolometer & Compensated Bridge",
+        badge: "Thermal-Electric Transduction",
+        html: `
+          <p>Because the human eye and photographic plates are insensitive to mid- and far-infrared radiation, Langley's <b>Bolometer</b> is employed as an unbiased electrical radiation detector directly behind exit slit S₂.</p>
+          <ul>
+            <li><b>Soot-Coated Platinum Strip:</b> Constructed from an ultra-thin ($1\text{–}2\,\mu\text{m}$) strip of pure <b>platinum foil</b> coated with a velvety deposit of <b>lampblack</b>. Metallic platinum reflects infrared, but the soot absorbs virtually 100% of incident photons, converting radiant energy into sensible heat ($\Delta T$).</li>
+            <li><b>Resistance Shift ($\Delta R$):</b> The temperature rise increases the electrical resistance of the platinum substrate: $R(T) = R_0[1 + \alpha_R \Delta T]$.</li>
+            <li><b>Twin-Strip Compensated Wheatstone Bridge:</b> One blackened strip is exposed to the spectral beam; an identical twin strip is shielded within the casing. Both form adjacent arms of a Wheatstone bridge, canceling out room temperature drafts.</li>
+            <li><b>Galvanometer Deflection ($\theta_g$):</b> The bridge unbalance current produces a deflection strictly proportional to radiant intensity $I(\lambda)$.</li>
+          </ul>
+        `
+      },
+      6: {
+        title: "Step 6: Scanning & Tracing the Planck Distribution",
+        badge: "Deducing Universal Laws",
+        html: `
+          <p><b>The Experimental Scan:</b> The bolometer carriage moves incrementally from bottom (UV) to top (IR). At each point, the experimenter logs wavelength ($\lambda$) and galvanometer deflection ($\theta_g$).</p>
+          <div class="highlight-box">
+            <b>Wien's Displacement Law:</b> As furnace temperature $T$ rises, the peak wavelength $\lambda_{\text{max}}$ shifts toward shorter wavelengths: $\lambda_{\text{max}} \cdot T = 2.898 \times 10^{-3}\text{ m}\cdot\text{K}$.
+          </div>
+          <ul>
+            <li><b>Virtual Lab Assignment:</b> Click <b>Download CSV (Excel)</b> above to export the complete numeric dataset at the active furnace temperature. Students can import this file into Excel, Origin, or Python to plot the curves, verify Wien's displacement law, and calculate total energy area ($E \propto T^4$).</li>
+            <li><b>Auto Zoom Feature:</b> Turn on <b>Auto Zoom</b> to rescale the graph to the local peak at lower temperatures (800 K to 1200 K), allowing students to observe $\lambda_{\text{max}}$ in the infrared region without the curve flattening out.</li>
+          </ul>
+        `
+      }
+    };
+
+    function setStep(stepNum) {
+      currentStep = stepNum;
+      
+      const btns = document.querySelectorAll('.step-btn');
+      btns.forEach((b, idx) => {
+        b.classList.toggle('active', idx + 1 === stepNum);
+      });
+
+      document.getElementById('stepTitle').innerHTML = `${stepData[stepNum].title} <span class="badge" id="stepBadge">${stepData[stepNum].badge}</span>`;
+      document.getElementById('stepContent').innerHTML = stepData[stepNum].html;
+
+      const scanHint = document.getElementById('scanHint');
+      if (stepNum === 6) {
+        scanHint.innerHTML = "<b>Step 6 Active:</b> Drag slider to sweep carriage across the focal plane, or click <b>Download CSV</b> for lab plotting.";
+      } else {
+        scanHint.innerHTML = `Viewing Step ${stepNum}. Advance through steps or jump to <b>Step 6</b> to scan the spectrum.`;
+      }
+    }
+
+    function onTempChange(val) {
+      furnaceTemp = parseFloat(val);
+      document.getElementById('tempVal').innerText = `${furnaceTemp} K`;
+      const peak = getWienPeak(furnaceTemp);
+      document.getElementById('wienPeakText').innerText = `λ_max ≈ ${Math.round(peak)} nm`;
+
+      const desc = document.getElementById('glowDesc');
+      if (furnaceTemp < 1000) desc.innerText = "Dull Cherry Red";
+      else if (furnaceTemp < 1300) desc.innerText = "Bright Red-Orange";
+      else if (furnaceTemp < 1600) desc.innerText = "Orange Incandescent";
+      else if (furnaceTemp < 1850) desc.innerText = "Bright Yellow";
+      else desc.innerText = "Dazzling Yellow-White";
+    }
+
+    function onSliderMove(val) {
+      scanLam = parseFloat(val);
+      document.getElementById('lamVal').innerText = `${scanLam} nm`;
+    }
+
+    function toggleAutoZoom() {
+      autoZoomEnabled = !autoZoomEnabled;
+      const btn = document.getElementById('autoZoomBtn');
+      if (autoZoomEnabled) {
+        btn.innerText = "🔍 Auto Zoom: ON";
+        btn.classList.add('active');
+      } else {
+        btn.innerText = "🔍 Auto Zoom: OFF";
+        btn.classList.remove('active');
+      }
+    }
+
+    function downloadCSVData() {
+      const peakLam = getWienPeak(furnaceTemp);
+      const peakRad = planck(peakLam, furnaceTemp);
+      
+      let csv = "";
+      csv += `# VIRTUAL LAB: EXPERIMENTAL BLACKBODY RADIATION SPECTRUM\r\n`;
+      csv += `# Apparatus: Fery's Cavity + Rock Salt (NaCl) Spectrometer + Langley Bolometer\r\n`;
+      csv += `# Furnace Temperature (T): ${furnaceTemp} K (${furnaceTemp - 273} deg C)\r\n`;
+      csv += `# Theoretical Wien Peak (lambda_max): ${Math.round(peakLam)} nm\r\n`;
+      csv += `Wavelength (nm),Wavelength (microns),Galvanometer Deflection (theta_g),Spectral Radiance I(lambda) [kW/(m2 nm sr)],Spectral Regime\r\n`;
+
+      for (let l = 200; l <= 3500; l += 25) {
+        const lamMicron = (l / 1000).toFixed(3);
+        const rad = planck(l, furnaceTemp);
+        const deflection = ((rad / peakRad) * 100).toFixed(2);
+        
+        let regime = "Infrared (IR)";
+        if (l < 380) regime = "Ultraviolet (UV)";
+        else if (l <= 750) regime = "Visible";
+
+        csv += `${l},${lamMicron},${deflection},${rad.toExponential(4)},${regime}\r\n`;
+      }
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Blackbody_Spectrum_${furnaceTemp}K_Data.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function getFurnaceColors(T) {
+      const tNorm = (T - 800) / (2000 - 800);
+      const r = Math.round(180 + tNorm * 75);
+      const g = Math.round(30 + tNorm * 210);
+      const b = Math.round(10 + tNorm * 120);
+      return {
+        core: `rgb(${r}, ${g}, ${b})`,
+        halo: `rgba(${r}, ${g}, ${b}, ${0.3 + tNorm * 0.4})`
+      };
+    }
+
+    // --- CANVAS RENDERING (EXPANDED TO 1080px WIDTH) ---
+
+    function drawFeryCavity(x, y, R, T) {
+      ctx.save();
+      const glow = getFurnaceColors(T);
+      
+      // Outer double-walled Casing
+      ctx.fillStyle = "#2c3e50";
+      ctx.strokeStyle = "#7f8c8d";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, R + 16, -Math.PI * 0.85, Math.PI * 0.85);
+      ctx.lineTo(x + 12, y + (R + 16) * Math.sin(Math.PI * 0.85));
+      ctx.stroke();
+
+      // Heating coils
+      ctx.strokeStyle = glow.core;
+      ctx.lineWidth = 3.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(x, y, R + 9, -Math.PI * 0.82, Math.PI * 0.82);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Inner Sphere
+      const radGrad = ctx.createRadialGradient(x, y, 10, x, y, R);
+      radGrad.addColorStop(0, glow.core);
+      radGrad.addColorStop(0.65, glow.halo);
+      radGrad.addColorStop(1, "#111111");
+      ctx.fillStyle = radGrad;
+      ctx.strokeStyle = "#f39c12";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      const apAngle = 0.22;
+      ctx.arc(x, y, R, apAngle, Math.PI * 2 - apAngle);
+      
+      const coneTipX = x - R + 30;
+      ctx.lineTo(coneTipX, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Conical projection
+      ctx.fillStyle = "#111111";
+      ctx.strokeStyle = "#f39c12";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x - R + 2, y - 16);
+      ctx.lineTo(coneTipX, y);
+      ctx.lineTo(x - R + 2, y + 16);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Aperture Collar
+      const apX = x + R * Math.cos(apAngle);
+      const apY1 = y - R * Math.sin(apAngle);
+      const apY2 = y + R * Math.sin(apAngle);
+      ctx.strokeStyle = "#bdc3c7";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(apX, apY1);
+      ctx.lineTo(apX + 12, apY1);
+      ctx.moveTo(apX, apY2);
+      ctx.lineTo(apX + 12, apY2);
+      ctx.stroke();
+
+      // Thermocouple readout
+      ctx.fillStyle = "#1e272e";
+      ctx.strokeStyle = "#00d2d3";
+      ctx.lineWidth = 1;
+      ctx.fillRect(x - 52, y - R - 40, 104, 22);
+      ctx.strokeRect(x - 52, y - R - 40, 104, 22);
+
+      ctx.fillStyle = "#00d2d3";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`THERMO: ${T} K`, x, y - R - 25);
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 11px sans-serif";
+      ctx.fillText("Féry's Cavity", x, y + R + 26);
+      
+      ctx.fillStyle = "#ecf0f1";
+      ctx.font = "10px sans-serif";
+      ctx.fillText("Pinhole (O)", apX + 28, y - 14);
+      ctx.fillText("Conical Projection", x - R + 14, y - 22);
+
+      ctx.restore();
+    }
+
+    function drawSlitAndCollimator(slitX, lensX, cy) {
+      ctx.save();
+      // Slit S1
+      ctx.fillStyle = "#7f8c8d";
+      ctx.fillRect(slitX - 3, cy - 48, 6, 34);
+      ctx.fillRect(slitX - 3, cy + 14, 6, 34);
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Slit S₁", slitX, cy - 58);
+
+      // Collimator Lens L1 (NaCl)
+      ctx.fillStyle = "rgba(41, 128, 185, 0.4)";
+      ctx.strokeStyle = "#3498db";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(lensX, cy, 9, 42, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#3498db";
+      ctx.fillText("Lens L₁ (NaCl)", lensX, cy - 54);
+
+      ctx.restore();
+    }
+
+    function drawPrism(px, py, size) {
+      ctx.save();
+      ctx.fillStyle = "rgba(52, 152, 219, 0.35)";
+      ctx.strokeStyle = "#2980b9";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(px, py - size / 1.05); // Apex
+      ctx.lineTo(px - size / 1.05, py + size / 1.25); // Base left
+      ctx.lineTo(px + size / 1.05, py + size / 1.25); // Base right
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#ecf0f1";
+      ctx.font = "bold 11.5px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Rock Salt Prism", px, py + size / 1.25 + 20);
+      ctx.font = "10px sans-serif";
+      ctx.fillStyle = "#00d2d3";
+      ctx.fillText("(Apex Top, Base Down)", px, py + size / 1.25 + 33);
+      ctx.restore();
+    }
+
+    function drawFocusingAndSpectrum(lens2X, cy) {
+      ctx.save();
+      // Lens L2
+      ctx.fillStyle = "rgba(41, 128, 185, 0.4)";
+      ctx.strokeStyle = "#3498db";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(lens2X, cy, 9, 46, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#3498db";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Focus Lens L₂", lens2X, cy - 58);
+
+      // Dispersed Focal Band (Top = IR, Bottom = UV)
+      const trackX = lens2X + 130;
+      const grad = ctx.createLinearGradient(trackX, cy - 65, trackX, cy + 75);
+      grad.addColorStop(0, "#7f1d1d");   // Far IR
+      grad.addColorStop(0.25, "#d35400"); // Near IR
+      grad.addColorStop(0.45, "#e74c3c"); // Red
+      grad.addColorStop(0.65, "#2ecc71"); // Green
+      grad.addColorStop(0.82, "#3498db"); // Blue
+      grad.addColorStop(1.0, "#9b59b6");  // UV
+      
+      ctx.fillStyle = grad;
+      ctx.fillRect(trackX - 4, cy - 65, 8, 130);
+      ctx.strokeStyle = "#bdc3c7";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(trackX - 4, cy - 65, 8, 130);
+
+      ctx.font = "9.5px sans-serif";
+      ctx.fillStyle = "#e74c3c";
+      ctx.textAlign = "left";
+      ctx.fillText("Infrared (IR - Min \u03B4)", trackX + 12, cy - 44);
+      ctx.fillStyle = "#2ecc71";
+      ctx.fillText("Visible", trackX + 12, cy - 5);
+      ctx.fillStyle = "#9b59b6";
+      ctx.fillText("UV (Max \u03B4)", trackX + 12, cy + 50);
+
+      ctx.restore();
+    }
+
+    function drawBolometerAndBridge(bx, by, deflectionAngle) {
+      ctx.save();
+      
+      // Slit S2
+      ctx.fillStyle = "#7f8c8d";
+      ctx.fillRect(bx - 12, by - 20, 4, 14);
+      ctx.fillRect(bx - 12, by + 6, 4, 14);
+
+      // Platinum strip coated with Lampblack
+      ctx.fillStyle = "#dcdde1";
+      ctx.fillRect(bx - 6, by - 14, 12, 28);
+      
+      ctx.fillStyle = "#111111"; // Velvety soot layer
+      ctx.fillRect(bx - 4, by - 11, 8, 22);
+
+      ctx.strokeStyle = "#f1c40f"; // Gold/Pt frame
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(bx - 6, by - 14, 12, 28);
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 10.5px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Bolometer", bx + 16, by - 8);
+      ctx.font = "9px sans-serif";
+      ctx.fillStyle = "#a4b0be";
+      ctx.fillText("Pt Foil + Soot", bx + 16, by + 4);
+
+      // Wheatstone Bridge Box
+      const wx = bx + 65;
+      const wy = by + 45;
+      ctx.fillStyle = "#1e272e";
+      ctx.strokeStyle = "#485460";
+      ctx.lineWidth = 1;
+      ctx.fillRect(wx - 30, wy - 22, 108, 64);
+      ctx.strokeRect(wx - 30, wy - 22, 108, 64);
+
+      ctx.fillStyle = "#00d2d3";
+      ctx.font = "9.5px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Wheatstone Bridge", wx + 24, wy - 8);
+
+      // Galvanometer Dial
+      const gx = wx + 24;
+      const gy = wy + 22;
+      const gr = 15;
+      ctx.fillStyle = "#000000";
+      ctx.strokeStyle = "#f5f6fa";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Needle
+      const needleLen = 12;
+      const needleAngle = -Math.PI / 2 + deflectionAngle;
+      ctx.strokeStyle = "#ff4757";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.lineTo(gx + needleLen * Math.cos(needleAngle), gy + needleLen * Math.sin(needleAngle));
+      ctx.stroke();
+
+      ctx.fillStyle = "#ecf0f1";
+      ctx.font = "8px sans-serif";
+      ctx.fillText("Galv.", gx, gy + 10);
+
+      // Wires
+      ctx.strokeStyle = "#f39c12";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(bx + 6, by);
+      ctx.lineTo(wx - 12, by);
+      ctx.lineTo(wx - 12, wy);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawStep6MiniGraph(gx, gy, gw, gh, currentLam, T) {
+      ctx.save();
+      ctx.fillStyle = "#0d131f";
+      ctx.strokeStyle = "#2f3542";
+      ctx.lineWidth = 1.2;
+      ctx.fillRect(gx, gy, gw, gh);
+      ctx.strokeRect(gx, gy, gw, gh);
+
+      const peakLam = getWienPeak(T);
+      const curMaxRad = planck(peakLam, T);
+
+      const maxScale = autoZoomEnabled 
+        ? curMaxRad 
+        : planck(getWienPeak(2000), 2000);
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 10.5px sans-serif";
+      ctx.textAlign = "center";
+      const zoomText = autoZoomEnabled ? " [Auto Zoom: ON]" : " [Absolute Scale]";
+      ctx.fillText(`Recorded Blackbody Spectrum at T = ${T} K${zoomText}`, gx + gw / 2, gy - 8);
+
+      // Axes
+      ctx.strokeStyle = "#57606f";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(gx + 30, gy + 15);
+      ctx.lineTo(gx + 30, gy + gh - 22);
+      ctx.lineTo(gx + gw - 18, gy + gh - 22);
+      ctx.stroke();
+
+      ctx.font = "9px sans-serif";
+      ctx.fillStyle = "#8395a7";
+      ctx.textAlign = "center";
+      ctx.fillText("Wavelength λ (nm)", gx + gw / 2, gy + gh - 6);
+
+      // Plot curve
+      ctx.strokeStyle = "#f1c40f";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      let hasBegun = false;
+
+      for (let l = 200; l <= currentLam; l += 25) {
+        const rad = planck(l, T);
+        const px = gx + 30 + ((l - 200) / (3200 - 200)) * (gw - 55);
+        const py = (gy + gh - 22) - (rad / (maxScale * 1.15)) * (gh - 38);
+        if (!hasBegun) {
+          ctx.moveTo(px, py);
+          hasBegun = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+
+      // Plotting head
+      const currRad = planck(currentLam, T);
+      const hx = gx + 30 + ((currentLam - 200) / (3200 - 200)) * (gw - 55);
+      const hy = (gy + gh - 22) - (currRad / (maxScale * 1.15)) * (gh - 38);
+      ctx.fillStyle = "#ff4757";
+      ctx.beginPath();
+      ctx.arc(hx, hy, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Annotate Wien's Peak
+      if (currentLam >= peakLam) {
+        const pkX = gx + 30 + ((peakLam - 200) / (3200 - 200)) * (gw - 55);
+        const pkY = (gy + gh - 22) - (curMaxRad / (maxScale * 1.15)) * (gh - 38);
+
+        ctx.strokeStyle = "#ffa502";
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(pkX, gy + gh - 22);
+        ctx.lineTo(pkX, pkY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#ffa502";
+        ctx.beginPath();
+        ctx.arc(pkX, pkY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`λ_max ≈ ${Math.round(peakLam)} nm`, pkX - 25, pkY - 8);
+      }
+
+      ctx.restore();
+    }
+
+    // --- MAIN ANIMATION DRAW LOOP ---
+    function drawSimulation() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cy = 195;
+      const cavityX = 110;
+      const cavityR = 56;
+      const slit1X = 270;
+      const lens1X = 350;
+      const prismX = 475;
+      const lens2X = 595;
+      const focalPlaneX = 735;
+
+      // 1. FÉRY'S BLACKBODY
+      drawFeryCavity(cavityX, cy, cavityR, furnaceTemp);
+
+      // Cavity internal reflection rays
+      if (animFrame % 60 < 45) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 234, 167, 0.4)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cavityX + 50, cy);
+        ctx.lineTo(cavityX - 28, cy + 32);
+        ctx.lineTo(cavityX - 38, cy - 28);
+        ctx.lineTo(cavityX + 22, cy - 38);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 2. STEP 2+: DIVERGING BEAM -> SLIT S1 -> LENS L1
+      if (currentStep >= 2) {
+        ctx.save();
+        const glow = getFurnaceColors(furnaceTemp);
+        ctx.fillStyle = glow.halo;
+        ctx.beginPath();
+        ctx.moveTo(cavityX + cavityR * Math.cos(0.22) + 12, cy);
+        ctx.lineTo(slit1X, cy - 14);
+        ctx.lineTo(slit1X, cy + 14);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(slit1X, cy);
+        ctx.lineTo(lens1X, cy - 30);
+        ctx.lineTo(lens1X, cy + 30);
+        ctx.closePath();
+        ctx.fill();
+
+        const beamEnd = (currentStep >= 3) ? prismX - 25 : lens1X + 90;
+        ctx.fillStyle = glow.halo;
+        ctx.fillRect(lens1X, cy - 30, beamEnd - lens1X, 60);
+        ctx.restore();
+
+        drawSlitAndCollimator(slit1X, lens1X, cy);
+      } else {
+        ctx.save();
+        const glow = getFurnaceColors(furnaceTemp);
+        ctx.fillStyle = glow.halo;
+        ctx.beginPath();
+        ctx.moveTo(cavityX + cavityR * Math.cos(0.22) + 12, cy);
+        ctx.lineTo(cavityX + cavityR + 70, cy - 34);
+        ctx.lineTo(cavityX + cavityR + 70, cy + 34);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 3. STEP 3+: PRISM & REFRACTION
+      if (currentStep >= 3) {
+        drawPrism(prismX, cy, 50);
+
+        const targetX = (currentStep >= 4) ? lens2X : prismX + 85;
+        ctx.save();
+        // Infrared (Least deviation -> stays high)
+        ctx.strokeStyle = "#e74c3c";
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(prismX - 10, cy);
+        ctx.lineTo(targetX, cy - 20);
+        ctx.stroke();
+
+        // Visible Green
+        ctx.strokeStyle = "#2ecc71";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(prismX - 10, cy);
+        ctx.lineTo(targetX, cy - 2);
+        ctx.stroke();
+
+        // UV (Greatest deviation -> bends downward toward base)
+        ctx.strokeStyle = "#9b59b6";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(prismX - 10, cy);
+        ctx.lineTo(targetX, cy + 24);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 4. STEP 4+: FOCUSING LENS L2 & SEPARATED FOCAL BAND
+      if (currentStep >= 4) {
+        drawFocusingAndSpectrum(lens2X, cy);
+
+        ctx.save();
+        // Infrared focuses at top
+        ctx.strokeStyle = "#e74c3c";
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(lens2X, cy - 20);
+        ctx.lineTo(focalPlaneX, cy - 48);
+        ctx.stroke();
+
+        // Visible Green in center
+        ctx.strokeStyle = "#2ecc71";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(lens2X, cy - 2);
+        ctx.lineTo(focalPlaneX, cy - 5);
+        ctx.stroke();
+
+        // UV focuses at bottom
+        ctx.strokeStyle = "#9b59b6";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(lens2X, cy + 24);
+        ctx.lineTo(focalPlaneX, cy + 44);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 5. STEP 5: BOLOMETER IN INFRARED REGION
+      if (currentStep === 5) {
+        const poloY = cy - 30; // Stationed in Infrared
+        const tScale = Math.min(1.2, (furnaceTemp / 1400) * 0.75);
+        drawBolometerAndBridge(focalPlaneX + 4, poloY, tScale);
+
+        ctx.fillStyle = "#00d2d3";
+        ctx.font = "bold 11.5px sans-serif";
+        ctx.fillText(`Pt Strip (coated with soot) absorbs IR heat at ${furnaceTemp} K -> Needle deflects!`, focalPlaneX - 70, cy + 130);
+      }
+
+      // 6. STEP 6: DYNAMIC SCANNING & GRAPH CONCURRENTLY
+      if (currentStep === 6) {
+        // Carriage moves bottom (UV at 200 nm) to top (IR at 3200 nm)
+        const frac = (scanLam - 200) / (3200 - 200);
+        const bY = (cy + 44) - frac * 92;
+        
+        const radVal = planck(scanLam, furnaceTemp);
+        const peakRad = planck(getWienPeak(furnaceTemp), furnaceTemp);
+        const maxScale = autoZoomEnabled ? peakRad : planck(getWienPeak(2000), 2000);
+        const normRad = Math.min(1.0, radVal / maxScale);
+        const deflAngle = normRad * 1.25;
+
+        drawBolometerAndBridge(focalPlaneX + 4, bY, deflAngle);
+
+        // Wide spectral graph positioned cleanly on lower-left
+        drawStep6MiniGraph(220, 290, 520, 160, scanLam, furnaceTemp);
+      }
+
+      animFrame++;
+      requestAnimationFrame(drawSimulation);
+    }
+
+    setStep(1);
+    requestAnimationFrame(drawSimulation);
+  </script>
+</body>
+</html>
