@@ -33,19 +33,19 @@
     body {
       background: var(--bg);
       color: var(--text);
-      padding: 18px;
+      padding: 16px;
     }
 
     .container {
-      max-width: 1240px;
+      max-width: 1260px;
       margin: 0 auto;
     }
 
     header {
       text-align: center;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
+      padding-bottom: 8px;
     }
 
     header h1 {
@@ -59,12 +59,72 @@
       font-size: 0.9rem;
     }
 
+    /* Mathematical Formulas Master Banner */
+    .formula-banner-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .formula-banner-grid { grid-template-columns: 1fr; }
+    }
+
+    .formula-card {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .formula-card.sb { border-left: 4px solid var(--yellow); }
+    .formula-card.planck { border-left: 4px solid var(--accent); }
+
+    .formula-card-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .formula-card.sb .formula-card-title { color: var(--yellow); }
+    .formula-card.planck .formula-card-title { color: var(--accent); }
+
+    .math-eq-display {
+      font-family: "Cambria Math", "Times New Roman", serif;
+      font-size: 1.12rem;
+      font-weight: bold;
+      color: #fff;
+      background: #1e293b;
+      padding: 6px 10px;
+      border-radius: 5px;
+      margin-bottom: 6px;
+      text-align: center;
+      border: 1px solid #334155;
+    }
+
+    .math-sub-live {
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      background: #090d16;
+      border: 1px dashed #334155;
+      padding: 5px 8px;
+      border-radius: 4px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
     /* KPI Summary Banner */
     .kpi-banner {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     @media (max-width: 800px) {
@@ -75,7 +135,7 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 12px;
       text-align: center;
     }
 
@@ -84,11 +144,11 @@
       color: var(--muted);
       text-transform: uppercase;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .kpi-card strong {
-      font-size: 1.22rem;
+      font-size: 1.2rem;
       font-family: monospace;
       color: #fff;
     }
@@ -97,7 +157,7 @@
       font-size: 0.72rem;
       color: var(--muted);
       display: block;
-      margin-top: 3px;
+      margin-top: 2px;
     }
 
     /* Toolbar */
@@ -107,9 +167,9 @@
       gap: 14px;
       background: var(--card);
       border: 1px solid var(--border);
-      padding: 14px 18px;
+      padding: 12px 18px;
       border-radius: 8px;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
       align-items: center;
       justify-content: space-between;
     }
@@ -158,7 +218,7 @@
     .grid-main {
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
-      gap: 16px;
+      gap: 14px;
     }
 
     @media (max-width: 900px) {
@@ -169,17 +229,17 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px;
+      padding: 14px;
     }
 
     .card h2 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: var(--accent);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-      padding-bottom: 8px;
+      padding-bottom: 6px;
     }
 
     canvas {
@@ -213,16 +273,16 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px;
-      margin-top: 18px;
-      font-size: 0.88rem;
+      padding: 14px 18px;
+      margin-top: 14px;
+      font-size: 0.86rem;
       line-height: 1.6;
       color: #cbd5e1;
     }
 
     .theory-card h3 {
       color: var(--accent);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .theory-card ul {
@@ -231,8 +291,8 @@
 
     footer {
       text-align: center;
-      margin-top: 24px;
-      padding: 16px 0;
+      margin-top: 20px;
+      padding: 14px 0;
       border-top: 1px solid var(--border);
       color: var(--muted);
       font-size: 0.82rem;
@@ -245,6 +305,40 @@
     <h1>Stefan-Boltzmann Law &amp; Blackbody Curve Integration</h1>
     <p>Demonstrating that the <strong>Total Area Under Planck's Curve</strong> equals $\int_0^\infty E_\lambda d\lambda = \varepsilon \sigma T^4$</p>
   </header>
+
+  <!-- Live Mathematical Formulas Display Banner -->
+  <div class="formula-banner-grid">
+    <!-- Stefan-Boltzmann Law Formula Card -->
+    <div class="formula-card sb">
+      <div class="formula-card-title">
+        <span>Stefan–Boltzmann Law &amp; Total Integrated Area</span>
+        <span id="sbTagLive">E = &epsilon;&sigma;T⁴</span>
+      </div>
+      <div class="math-eq-display">
+        E<sub>total</sub> = &int;<sub>0</sub><sup>&infin;</sup> E<sub>&lambda;</sub> d&lambda; = <b>&epsilon; &times; &sigma; &times; T<sup>4</sup></b>
+      </div>
+      <div class="math-sub-live" id="sbSubLive">
+Substitution:
+&sigma; = 5.67037&times;10⁻⁸ W/(m²&middot;K⁴) | &epsilon; = 0.95 | T = 2800 K
+E = (0.95) &times; (5.67037&times;10⁻⁸) &times; (2800)⁴ = 3.31 MW/m²
+      </div>
+    </div>
+
+    <!-- Planck & Wien Formulas Card -->
+    <div class="formula-card planck">
+      <div class="formula-card-title">
+        <span>Planck's Curve &amp; Wien's Displacement Law</span>
+        <span id="wienTagLive">&lambda;<sub>max</sub> = b / T</span>
+      </div>
+      <div class="math-eq-display" style="font-size: 0.98rem;">
+        E<sub>&lambda;</sub> = <b>(2&pi; h c&sup2;) / [&lambda;⁵ (e<sup>hc/&lambda;k<sub>B</sub>T</sup> &minus; 1)]</b> &nbsp;|&nbsp; &lambda;<sub>max</sub> = <b>b / T</b>
+      </div>
+      <div class="math-sub-live" id="wienSubLive">
+Peak Position: b = 2.89777&times;10⁻³ m&middot;K
+&lambda;<sub>max</sub> = (2.898&times;10⁶ nm&middot;K) / (2800 K) = 1035 nm (Infrared)
+      </div>
+    </div>
+  </div>
 
   <!-- Live KPI Summary Banner -->
   <div class="kpi-banner">
@@ -330,17 +424,15 @@
     <h3>Mathematical Proof &amp; Spectral Breakdown</h3>
     <ul>
       <li>
-        <b>1. Why the Bulb (2800 K) Curve Looked "Flat" Without Auto-Zoom:</b> Because power scales with $T^4$, the peak emission at $6000\text{ K}$ is <b>over $21\times$ taller</b> than at $2800\text{ K}$. On a fixed global axis, $2800\text{ K}$ is compressed near the bottom. Clicking <b>Auto-Zoom</b> automatically rescales the vertical axis to the exact peak at any temperature so you can inspect its shape, peak location ($\lambda_{\text{max}} = 1035\text{ nm}$), and the rainbow overlap!
+        <b>1. Mathematical Link Between Planck &amp; Stefan–Boltzmann:</b> Integrating Planck's equation over all wavelengths from $0$ to $\infty$ mathematically evaluates to:
+        $$\int_0^\infty E_\lambda(\lambda, T) \, d\lambda = \int_0^\infty \frac{2\pi h c^2}{\lambda^5 \left(e^{\frac{hc}{\lambda k_B T}} - 1\right)} d\lambda = \frac{2\pi^5 k_B^4}{15 c^2 h^3} T^4 = \sigma T^4$$
+        The shaded area under the Planck curve is physically equal to the total power emitted by the Stefan–Boltzmann law!
       </li>
       <li>
-        <b>2. Where the Light Actually Goes at 2800 K:</b> As calculated in real time above, only <b>~9%</b> of the total area falls inside the visible rainbow window ($380\text{ nm} - 750\text{ nm}$). Over <b>90%</b> is radiated into the invisible infrared as heat.
+        <b>2. Why the Bulb (2800 K) Curve Looked "Flat" Without Auto-Zoom:</b> Because power scales with $T^4$, the peak emission at $6000\text{ K}$ is <b>over $21\times$ taller</b> than at $2800\text{ K}$[span_0](start_span)[span_0](end_span). On a fixed global axis, $2800\text{ K}$ is compressed near the bottom[span_1](start_span)[span_1](end_span). Clicking <b>Auto-Zoom</b> automatically rescales the vertical axis to the exact peak at any temperature so you can inspect its shape, peak location ($\lambda_{\text{max}} = 1035\text{ nm}$), and the rainbow overlap[span_2](start_span)[span_2](end_span)!
       </li>
       <li>
-        <b>3. Integration to Stefan-Boltzmann:</b> Integrating the Planck curve over all wavelengths from $0$ to $\infty$ yields:
-        <br>
-        <span style="font-family: monospace; color:var(--green); display:block; text-align:center; margin: 4px 0;">
-          \text{Total Area} = \int_0^\infty E_\lambda(\lambda, T) \, d\lambda = \varepsilon \sigma T^4
-        </span>
+        <b>3. Where the Light Actually Goes at 2800 K:</b> As calculated in real time above, only <b>~9%</b> of the total area falls inside the visible rainbow window ($380\text{ nm} - 750\text{ nm}$)[span_3](start_span)[span_3](end_span). Over <b>90%</b> is radiated into the invisible infrared as heat[span_4](start_span)[span_4](end_span).
       </li>
     </ul>
   </div>
@@ -370,6 +462,9 @@
   const uvPct = document.getElementById('uvPct');
   const visPct = document.getElementById('visPct');
   const irPct = document.getElementById('irPct');
+
+  const sbSubLive = document.getElementById('sbSubLive');
+  const wienSubLive = document.getElementById('wienSubLive');
 
   const cCurve = document.getElementById('canvasCurve');
   const ctxCurve = cCurve.getContext('2d');
@@ -573,7 +668,7 @@
     ctxCurve.fillText('Spectral Emissive Power E_λ', 0, 0);
     ctxCurve.restore();
 
-    // Status Badges on Canvas - Placed cleanly in the top margin with no overlap
+    // Status Badges on Canvas
     ctxCurve.fillStyle = autoZoom ? '#10b981' : '#64748b';
     ctxCurve.font = 'bold 11px monospace';
     ctxCurve.textAlign = 'left';
@@ -680,6 +775,20 @@
     statE.innerText = formatPower(E) + '/m²';
     statPeak.innerText = lamPeakNm + ' nm';
     statT4.innerText = t4_mult.toFixed(1) + ' ×';
+
+    // Live Mathematical Formula Substitution Updates
+    sbSubLive.textContent = 
+`Live Substitution:
+σ = 5.67037×10⁻⁸ W/(m²·K⁴) | ε = ${eps.toFixed(2)} | T = ${T} K
+E_total = (${eps.toFixed(2)}) × (5.67037×10⁻⁸) × (${T})⁴ = ${formatPower(E)}/m²`;
+
+    let regime = "Infrared";
+    if (lamPeakNm < 380) regime = "Ultraviolet";
+    else if (lamPeakNm <= 750) regime = "Visible";
+
+    wienSubLive.textContent = 
+`Peak Position: b = 2.89777×10⁻³ m·K = 2.898×10⁶ nm·K
+λ_max = (2.898×10⁶ nm·K) / (${T} K) = ${lamPeakNm} nm (${regime})`;
 
     renderCurve(T, eps);
     renderPower(T, eps);
