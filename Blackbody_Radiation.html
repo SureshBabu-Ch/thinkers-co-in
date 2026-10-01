@@ -60,6 +60,39 @@
             color: #2c3e50;
         }
         
+        /* Formula Callout Styling */
+        .formula-callout {
+            background: #edf2f7;
+            border-left: 4px solid #3182ce;
+            padding: 8px 14px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .formula-callout.micro { border-left-color: #805ad5; }
+        .formula-callout.macro { border-left-color: #dd6b20; }
+        .formula-title {
+            font-weight: bold;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        .math-eq {
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1.05em;
+            font-weight: bold;
+            color: #1a202c;
+            display: block;
+            margin: 2px 0;
+        }
+        .math-desc {
+            font-size: 0.85em;
+            color: #718096;
+        }
+
         /* SVG Styling */
         .axis-label { font-size: 12px; font-weight: bold; }
         .line-planck { fill: none; stroke: #e74c3c; stroke-width: 3px; }
@@ -87,17 +120,30 @@
         <!-- Chart 1: Microscopic View -->
         <div class="chart-container" id="chart1-container">
             <div class="chart-title">Microscopic: Cavity Mode Energy (Equipartition vs Quantum)</div>
+            <div class="formula-callout micro">
+                <div class="formula-title">Formulas Used in Microscopic Simulation:</div>
+                <div class="math-eq" style="color: #34495e;">• Classical Equipartition: &lang;E&rang; = k<sub>B</sub> &times; T</div>
+                <div class="math-desc">Independent of frequency &nu; (every mode receives equal continuous thermal energy).</div>
+                <div class="math-eq" style="color: #2b6cb0; margin-top: 4px;">• Planck Quantum Oscillator: &lang;E&rang; = (h &times; &nu;) / [e<sup>(h&nu; / k<sub>B</sub>T)</sup> - 1]</div>
+                <div class="math-desc">Energy quantization (E = nh&nu;) suppresses high-frequency UV modes.</div>
+            </div>
             <div id="chart1"></div>
         </div>
 
         <!-- Chart 2: Macroscopic View -->
         <div class="chart-container" id="chart2-container">
             <div class="chart-title">Macroscopic: Spectral Radiance & Ultraviolet Catastrophe</div>
+            <div class="formula-callout macro">
+                <div class="formula-title">Formulas Used in Macroscopic Simulation:</div>
+                <div class="math-eq" style="color: #c53030;">• Wien's Law (Peak): &lambda;<sub>max</sub> = b / T = (2.898&times;10<sup>6</sup> nm&middot;K) / T</div>
+                <div class="math-eq" style="color: #2b6cb0;">• Rayleigh–Jeans (Failure): B<sub>&lambda;</sub> = (2 c k<sub>B</sub> T) / &lambda;<sup>4</sup></div>
+                <div class="math-eq" style="color: #e53e3e;">• Planck's Law (Exact): B<sub>&lambda;</sub> = (2 h c&sup2;) / [&lambda;<sup>5</sup> &times; (e<sup>(hc / &lambda;k<sub>B</sub>T)</sup> - 1)]</div>
+            </div>
             <div id="chart2"></div>
         </div>
     </div>
 
-    <!-- Copyright Footer Added Here -->
+    <!-- Copyright Footer -->
     <div style="text-align: center; font-size: 11px; margin-top: 30px; color: #666; border-top: 1px solid #ddd; padding-top: 15px; width: 100%; max-width: 1400px;">
         © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University. Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
     </div>
@@ -216,28 +262,23 @@
         leg2.append("line").attr("x1", 0).attr("x2", 20).attr("y1", 20).attr("y2", 20).attr("class", "line-rj");
         leg2.append("text").attr("x", 25).attr("y", 24).text("Rayleigh-Jeans (Failure)");
 
-
         // --- UPDATE FUNCTION ---
         function update(T) {
             document.getElementById('tempDisplay').textContent = T;
 
             // --- Update Chart 1 Data (Microscopic) ---
             const freqData = [];
-            // Frequencies from 50 THz to 1500 THz
             for (let f = 50; f <= 1500; f += 100) {
                 const nu = f * 1e12; // Convert to Hz
                 const exponent = (h * nu) / (kB * T);
-                // Quantum Energy: h*nu / (e^(h*nu/kT) - 1)
                 const E_quantum = (h * nu) / (Math.exp(exponent) - 1);
                 freqData.push({
                     freq_THz: f.toString(),
-                    E_quant_scaled: E_quantum * 1e20 // Scale for display
+                    E_quant_scaled: E_quantum * 1e20
                 });
             }
             
             const E_class_scaled = (kB * T) * 1e20;
-            
-            // Fixed Y domain for Chart 1 based on max temp (10000K) to show the line rising
             const max_E_class = (kB * 10000) * 1e20;
             x1.domain(freqData.map(d => d.freq_THz));
             y1.domain([0, max_E_class * 1.1]);
@@ -267,7 +308,6 @@
                 .attr("y", d => y1(d.E_quant_scaled))
                 .attr("height", d => height - y1(d.E_quant_scaled));
 
-
             // --- Update Chart 2 Data (Macroscopic) ---
             const waveData = [];
             let maxRadiance = 0;
@@ -280,7 +320,7 @@
                 // Planck
                 const exponent = (h * c) / (lam * kB * T);
                 let B_planck = 0;
-                if (exponent < 700) { // prevent overflow
+                if (exponent < 700) {
                     B_planck = ((2 * h * c * c) / Math.pow(lam, 5)) * (1 / (Math.exp(exponent) - 1));
                 }
                 
@@ -296,17 +336,13 @@
                 });
             }
 
-            // DYNAMIC Y-AXIS SCALING: Lock to the peak of the Planck curve
             y2.domain([0, maxRadiance * 1.15]);
             yAxis2.call(d3.axisLeft(y2).tickFormat(d3.format(".1e")));
 
-            // Position Background Spectrum accurately on the X axis
-            // 400nm to 700nm relative to the scale
             const x400 = Math.max(0, x2(400));
             const x700 = x2(700);
             visBackground.attr("x", x400).attr("width", x700 - x400);
 
-            // Generators
             const lineGenPlanck = d3.line()
                 .x(d => x2(d.wl_nm))
                 .y(d => y2(d.planck));
@@ -315,11 +351,9 @@
                 .x(d => x2(d.wl_nm))
                 .y(d => y2(d.rj));
 
-            // Update Lines
             pathPlanck.datum(waveData).attr("d", lineGenPlanck);
             pathRJ.datum(waveData).attr("d", lineGenRJ);
 
-            // Update Peak Marker (Wien's Law)
             if (lambdaMax_nm >= 100 && lambdaMax_nm <= 3000) {
                 maxMarker.style("display", null);
                 maxMarker.attr("transform", `translate(${x2(lambdaMax_nm)}, 0)`);
@@ -330,12 +364,10 @@
             }
         }
 
-        // Event listener for slider
         d3.select("#tempSlider").on("input", function() {
             update(+this.value);
         });
 
-        // Initial draw
         update(5000);
     </script>
 </body>
