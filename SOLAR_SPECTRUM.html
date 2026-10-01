@@ -296,7 +296,7 @@
       const earthY = 240;
       const earthR = 34;
 
-      // 1. Sun
+      // 1. Sun & Corona
       const gradCorona = ctx.createRadialGradient(sunX, sunY, 20, sunX, sunY, 80);
       gradCorona.addColorStop(0, "rgba(243, 156, 18, 0.8)");
       gradCorona.addColorStop(0.5, "rgba(230, 126, 34, 0.3)");
@@ -329,7 +329,7 @@
       ctx.fillStyle = "#8395a7";
       ctx.fillText("(Atmosphere bypassed)", earthX, earthY + 68);
 
-      // 3. Beam Envelope
+      // 3. Beam Envelope (Thermal Photospheric Radiation)
       ctx.strokeStyle = "rgba(243, 156, 18, 0.25)";
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
@@ -388,6 +388,12 @@
       ctx.fillStyle = "#a4b0be";
       ctx.fillText("Uncut Vacuum Beam", satX, satY - 37);
 
+      // Clean X-ray & High Energy Sensor Annotation on the Spacecraft
+      ctx.textAlign = "center";
+      ctx.font = "9.5px -apple-system, sans-serif";
+      ctx.fillStyle = "#00d2d3";
+      ctx.fillText("• Coronal X-ray & Particle Sensors Active", satX, satY + 54);
+
       ctx.restore();
     }
 
@@ -414,14 +420,21 @@
       ctx.fillStyle = "rgba(44, 62, 80, 0.45)";
       ctx.fillRect(xVisStart, plotY, xVisEnd - xVisStart, plotH);
 
-      // Regime labels
+      // Regime labels across top
       ctx.font = "bold 10px -apple-system, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#00d2d3";
+      ctx.fillText("← X-rays (<10 nm)", plotX + 6, plotY + 25);
+
+      ctx.textAlign = "center";
       ctx.fillStyle = "#9b59b6";
-      ctx.fillText("UV", plotX + 30, plotY + 25);
+      ctx.fillText("UV", plotX + 85, plotY + 25);
       ctx.fillStyle = "#1abc9c";
       ctx.fillText("Visible", (xVisStart + xVisEnd) / 2, plotY + 25);
+
+      ctx.textAlign = "right";
       ctx.fillStyle = "#e74c3c";
-      ctx.fillText("Near Infrared (IR)", plotX + plotW - 70, plotY + 25);
+      ctx.fillText("Near Infrared (IR)", plotX + plotW - 15, plotY + 25);
 
       // Grid Lines
       ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
@@ -461,7 +474,7 @@
         const gx = plotX + ((val - lamMin) / (lamMaxRange - lamMin)) * plotW;
         ctx.fillText(val, gx, plotY + plotH + 15);
       }
-      ctx.fillText("Wavelength \u03BB (nm)", plotX + plotW / 2, plotY + plotH + 34);
+      ctx.fillText("Wavelength λ (nm)", plotX + plotW / 2, plotY + plotH + 34);
 
       ctx.textAlign = "right";
       for (let r = 5; r <= 20; r += 5) {
@@ -473,7 +486,7 @@
       ctx.translate(plotX - 35, plotY + plotH / 2);
       ctx.rotate(-Math.PI / 2);
       ctx.textAlign = "center";
-      ctx.fillText("Radiance I(\u03BB) [kW / (m\u00B2 nm sr)]", 0, 0);
+      ctx.fillText("Radiance I(λ) [kW / (m² nm sr)]", 0, 0);
       ctx.restore();
 
       // Trace Planck Radiance Curve
@@ -519,9 +532,9 @@
 
           ctx.textAlign = "left";
           ctx.font = "bold 11px -apple-system, sans-serif";
-          ctx.fillText(`\u03BB_max \u2248 ${lamMax_nm.toFixed(1)} nm`, peakX + 12, peakY - 14);
+          ctx.fillText(`λ_max ≈ ${lamMax_nm.toFixed(1)} nm`, peakX + 12, peakY - 14);
           ctx.fillStyle = "#ecf0f1";
-          ctx.fillText(`T \u2248 ${T_sun} K`, peakX + 12, peakY + 2);
+          ctx.fillText(`T ≈ ${T_sun} K`, peakX + 12, peakY + 2);
         }
       }
 
