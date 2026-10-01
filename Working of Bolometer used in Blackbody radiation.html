@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spectrobolometer: Blackbody Spectrum & Wheatstone Bridge</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: #141a24;
+      --accent: #00d2d3;
+      --gold: #f1c40f;
+      --heat: #ff4757;
+      --green: #2ed573;
+      --text: #ecf0f1;
+      --muted: #8395a7;
+      --border: #2f3542;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 20px;
+      color: var(--gold);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .lab-container {
+      max-width: 1140px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .controls-strip {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 12px;
+    }
+    .ctrl-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .ctrl-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+    input[type=range] {
+      flex: 1;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .action-btn {
+      background: #1e272e;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .action-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .action-btn.active {
+      background: var(--gold);
+      color: #0b0f19;
+      border-color: var(--gold);
+    }
+    .beam-btn {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .beam-btn.stopped {
+      background: #c0392b;
+      border-color: #e74c3c;
+      color: #fff;
+    }
+    .csv-btn {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .csv-btn:hover {
+      background: var(--green);
+      color: #0b0f19;
+    }
+    .stage-card {
+      background: #05070d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+    }
+    canvas {
+      display: block;
+      background: #05070d;
+      border-radius: 6px;
+    }
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .metric-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .metric-cell span:first-child {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .metric-cell span:last-child {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* Textbook Mathematical Equation Box (Word/Cambria Math Style) */
+    .formula-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 18px;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .formula-box h3 {
+      font-size: 12.5px;
+      color: var(--gold);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .math-display {
+      font-family: "Cambria Math", "Latin Modern Math", "Times New Roman", serif;
+      background: #060912;
+      border: 1px solid #1f2838;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 8px 0;
+      color: #e2e8f0;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    .math-var {
+      font-style: italic;
+    }
+    .math-sub {
+      font-size: 10px;
+      vertical-align: sub;
+      font-style: normal;
+    }
+    .math-sup {
+      font-size: 10px;
+      vertical-align: super;
+      font-style: normal;
+    }
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+    }
+    .math-num {
+      border-bottom: 1px solid #94a3b8;
+      padding-bottom: 2px;
+    }
+    .math-den {
+      padding-top: 2px;
+    }
+    .math-op {
+      font-size: 18px;
+      vertical-align: middle;
+      padding: 0 2px;
+    }
+
+    footer {
+      text-align: center;
+      max-width: 1140px;
+      width: 100%;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-style: italic;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="lab-container">
+    <header>
+      <h1>Experimental Determination of Blackbody Radiation Spectrum</h1>
+      <div class="subtitle">Langley Bolometer & Wheatstone Bridge Galvanometer Tracing</div>
+    </header>
+
+    <div class="controls-strip">
+      <div class="ctrl-box">
+        <div class="ctrl-title">
+          <span>Furnace Temperature (T)</span>
+          <span id="tempVal" style="color:var(--gold); font-weight:bold;">1550 K</span>
+        </div>
+        <div class="slider-row">
+          <span style="color:var(--muted); font-size:11px;">800 K</span>
+          <input type="range" id="tempSlider" min="800" max="2200" step="50" value="1550">
+          <span style="color:var(--muted); font-size:11px;">2200 K</span>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+          Theoretical Wien Peak: <b id="wienPeakText" style="color:var(--gold);">λ_max ≈ 1870 nm (1.87 μm)</b>
+        </div>
+      </div>
+
+      <div class="ctrl-box">
+        <div class="ctrl-title">
+          <span>Monochromator Slit Position (λ)</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button id="autoZoomBtn" class="action-btn active">Auto Zoom: ON</button>
+            <button id="beamBtn" class="action-btn beam-btn">Beam: ACTIVE</button>
+            <button id="csvBtn" class="action-btn csv-btn">📥 Download CSV</button>
+            <span id="lamVal" style="color:var(--gold); font-weight:bold; margin-left:4px;">200 nm</span>
+          </div>
+        </div>
+        <div class="slider-row">
+          <span style="color:var(--muted); font-size:11px;">200 nm</span>
+          <input type="range" id="lamSlider" min="200" max="3400" step="20" value="200">
+          <span style="color:var(--muted); font-size:11px;">3400 nm</span>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+          Drag slider forward to integrate area; drag backward to erase.
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-card">
+      <canvas id="expCanvas" width="1120" height="620"></canvas>
+    </div>
+
+    <!-- Live Transduction Metrics -->
+    <div class="metrics-bar">
+      <div class="metric-cell">
+        <span>Detected Peak (λ_max):</span>
+        <span id="txt_lmax" style="color:var(--muted);">-- (Scan past peak first)</span>
+      </div>
+      <div class="metric-cell">
+        <span>Total Area under Curve (∫I_G):</span>
+        <span id="txt_area" style="color:var(--green);">0.00 a.u. (∝ T⁴)</span>
+      </div>
+      <div class="metric-cell">
+        <span>Active Arm (R_bolo):</span>
+        <span id="txt_r" style="color:var(--accent);">50.000 Ω</span>
+      </div>
+      <div class="metric-cell">
+        <span>Bridge Output (V_D - V_B):</span>
+        <span id="txt_dv">0.000 mV</span>
+      </div>
+      <div class="metric-cell">
+        <span>Galvanometer Deflection (I_G):</span>
+        <span id="txt_ig" style="color:var(--heat); font-size:14px;">0.00 μA</span>
+      </div>
+    </div>
+
+    <!-- Word / Cambria Math Styled Formula Panel -->
+    <div class="formula-card">
+      <div class="formula-box">
+        <h3>📐 1. Wien's Displacement Law (Peak Wavelength)</h3>
+        <p>Peak emission shifts inversely with absolute temperature:</p>
+        <div class="math-display">
+          <span class="math-var">λ</span><span class="math-sub">max</span>
+          <span>=</span>
+          <div class="math-frac">
+            <span class="math-num"><span class="math-var">b</span></span>
+            <span class="math-den"><span class="math-var">T</span></span>
+          </div>
+          <span>=</span>
+          <div class="math-frac">
+            <span class="math-num">2.89777 × 10<span class="math-sup">6</span> nm·K</span>
+            <span class="math-den"><span class="math-var">T</span></span>
+          </div>
+        </div>
+        <p style="color:var(--muted); font-size:11px;">
+          Derived from Planck's distribution at the maximum:
+          <span style="font-family:'Cambria Math',serif; font-style:italic;">∂E(λ, T)/∂λ = 0</span>.
+        </p>
+      </div>
+
+      <div class="formula-box">
+        <h3>∫ 2. Stefan–Boltzmann Law (Total Radiated Area)</h3>
+        <p>Calculated via numerical integration (Composite Trapezoidal Rule):</p>
+        <div class="math-display">
+          <span class="math-var">Area</span>
+          <span>=</span>
+          <span class="math-op">∫</span>
+          <span class="math-var">I</span><span class="math-sub">G</span>(<span class="math-var">λ</span>) <span class="math-var">dλ</span>
+          <span>≈</span>
+          <span class="math-op">∑</span>
+          <span>[</span>
+          <div class="math-frac">
+            <span class="math-num"><span class="math-var">I</span><span class="math-sub">G</span>(<span class="math-var">λ</span><span class="math-sub">i</span>) + <span class="math-var">I</span><span class="math-sub">G</span>(<span class="math-var">λ</span><span class="math-sub">i+1</span>)</span>
+            <span class="math-den">2</span>
+          </div>
+          <span>]</span>
+          <span>· Δ<span class="math-var">λ</span></span>
+          <span>∝</span>
+          <span class="math-var">T</span><span class="math-sup">4</span>
+        </div>
+        <p style="color:var(--muted); font-size:11px;">
+          Total emitted radiant energy equals the area under the full curve across all wavelengths.
+        </p>
+      </div>
+    </div>
+
+    <footer>
+      &copy; All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
+      Vasireddy Venkatadri International Technological University. 
+      Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
+    </footer>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('expCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const tempSlider = document.getElementById('tempSlider');
+    const lamSlider = document.getElementById('lamSlider');
+    const autoZoomBtn = document.getElementById('autoZoomBtn');
+    const beamBtn = document.getElementById('beamBtn');
+    const csvBtn = document.getElementById('csvBtn');
+
+    const tempVal = document.getElementById('tempVal');
+    const lamVal = document.getElementById('lamVal');
+    const wienPeakText = document.getElementById('wienPeakText');
+    const txt_lmax = document.getElementById('txt_lmax');
+    const txt_area = document.getElementById('txt_area');
+    const txt_r = document.getElementById('txt_r');
+    const txt_dv = document.getElementById('txt_dv');
+    const txt_ig = document.getElementById('txt_ig');
+
+    let furnaceTemp = 1550;
+    let scanLam = 200;
+    let autoZoomEnabled = true;
+    let isRadiationActive = true;
+    let rayPhase = 0;
+
+    const h = 6.626e-34;
+    const c = 3.0e8;
+    const kB = 1.38e-23;
+    const b_wien = 2.89777e-3;
+
+    const R0 = 50.0;
+    const alphaPt = 0.00392;
+    const Vs = 4.0;
+    const Rg = 100.0;
+    const R1 = 500.0, R2 = 500.0, R3 = 50.0;
+
+    function getWienPeak(T) {
+      return (b_wien / T) * 1e9;
+    }
+
+    function planck(lam_nm, T) {
+      const lam_m = lam_nm * 1e-9;
+      const c1 = 2 * Math.PI * h * c * c;
+      const c2 = (h * c) / (kB * T);
+      const exponent = c2 / lam_m;
+      if (exponent > 80) return 0;
+      const denominator = Math.exp(exponent) - 1;
+      if (denominator <= 0) return 0;
+      const val = c1 / (Math.pow(lam_m, 5) * denominator);
+      return (val * 1e-9) / 1e3;
+    }
+
+    function solveBridge(lam_nm, T, radiationOn) {
+      if (!radiationOn) {
+        return { deltaT: 0, R_bolo: R0, V_signal: 0, Ig_uA: 0 };
+      }
+      const rad = planck(lam_nm, T);
+      const deltaT = rad * 0.0085;
+      const R_bolo = R0 + (R0 * alphaPt * deltaT);
+
+      const VB = Vs * (R3 / (R1 + R3));
+      const VD = Vs * (R_bolo / (R2 + R_bolo));
+      const V_signal = VD - VB;
+
+      const R_Th = ((R1 * R3) / (R1 + R3)) + ((R2 * R_bolo) / (R2 + R_bolo));
+      const Ig = V_signal / (R_Th + Rg);
+      const Ig_uA = Ig * 1e6;
+
+      return { deltaT, R_bolo, V_signal, Ig_uA };
+    }
+
+    function computeCumulativeArea(maxLam, T, radiationOn) {
+      if (!radiationOn || maxLam <= 200) return 0;
+      let area = 0;
+      const step = 20;
+      for (let l = 200; l < maxLam; l += step) {
+        const y1 = solveBridge(l, T, radiationOn).Ig_uA;
+        const y2 = solveBridge(Math.min(maxLam, l + step), T, radiationOn).Ig_uA;
+        area += 0.5 * (y1 + y2) * (Math.min(maxLam, l + step) - l);
+      }
+      return area;
+    }
+
+    function updateMetrics() {
+      const state = solveBridge(scanLam, furnaceTemp, isRadiationActive);
+      const peak = getWienPeak(furnaceTemp);
+      const area = computeCumulativeArea(scanLam, furnaceTemp, isRadiationActive);
+
+      if (isRadiationActive && scanLam >= peak) {
+        txt_lmax.textContent = `${Math.round(peak)} nm (${(peak / 1000).toFixed(2)} μm)`;
+        txt_lmax.style.color = "var(--gold)";
+      } else {
+        txt_lmax.textContent = "-- (Scan past peak first)";
+        txt_lmax.style.color = "var(--muted)";
+      }
+
+      txt_area.textContent = `${area.toFixed(1)} a.u. (∝ T⁴)`;
+      txt_r.textContent = `${state.R_bolo.toFixed(3)} Ω`;
+      txt_dv.textContent = `${(state.V_signal * 1000).toFixed(3)} mV`;
+      txt_ig.textContent = `${state.Ig_uA.toFixed(2)} μA`;
+    }
+
+    function downloadCSV() {
+      const peak = getWienPeak(furnaceTemp);
+      let csv = "";
+      csv += "# VIRTUAL LAB: BLACKBODY RADIATION SPECTRUM & SPECTROBOLOMETRY\r\n";
+      csv += `# Furnace Temperature (T): ${furnaceTemp} K (${furnaceTemp - 273} deg C)\r\n`;
+      csv += `# Theoretical Wien Peak (lambda_max): ${Math.round(peak)} nm (${(peak / 1000).toFixed(3)} um)\r\n`;
+      csv += "Wavelength (nm),Wavelength (microns),Galvanometer Deflection I_G (uA),Spectral Radiance (kW/m2 nm),Spectral Regime\r\n";
+
+      for (let l = 200; l <= 3400; l += 20) {
+        const state = solveBridge(l, furnaceTemp, true);
+        const rad = planck(l, furnaceTemp);
+        let regime = "Infrared (IR)";
+        if (l < 380) regime = "Ultraviolet (UV)";
+        else if (l <= 750) regime = "Visible";
+
+        csv += `${l},${(l / 1000).toFixed(3)},${state.Ig_uA.toFixed(3)},${rad.toExponential(4)},${regime}\r\n`;
+      }
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Blackbody_Spectrum_${furnaceTemp}K_Data.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    tempSlider.addEventListener('input', function() {
+      furnaceTemp = parseFloat(this.value);
+      tempVal.textContent = `${furnaceTemp} K`;
+      const peak = getWienPeak(furnaceTemp);
+      wienPeakText.textContent = `λ_max ≈ ${Math.round(peak)} nm (${(peak / 1000).toFixed(2)} μm)`;
+      updateMetrics();
+    });
+
+    lamSlider.addEventListener('input', function() {
+      scanLam = parseFloat(this.value);
+      lamVal.textContent = `${scanLam} nm`;
+      updateMetrics();
+    });
+
+    autoZoomBtn.addEventListener('click', function() {
+      autoZoomEnabled = !autoZoomEnabled;
+      this.textContent = autoZoomEnabled ? "Auto Zoom: ON" : "Auto Zoom: OFF";
+      this.classList.toggle('active', autoZoomEnabled);
+    });
+
+    beamBtn.addEventListener('click', function() {
+      isRadiationActive = !isRadiationActive;
+      this.textContent = isRadiationActive ? "Beam: ACTIVE" : "Beam: STOPPED";
+      this.classList.toggle('stopped', !isRadiationActive);
+      updateMetrics();
+    });
+
+    csvBtn.addEventListener('click', downloadCSV);
+
+    function drawBlackbodyGraph(gx, gy, gw, gh, currentLam, T, radiationOn) {
+      ctx.save();
+      ctx.fillStyle = "#0d131f";
+      ctx.strokeStyle = "#2f3542";
+      ctx.lineWidth = 1.2;
+      ctx.fillRect(gx, gy, gw, gh);
+      ctx.strokeRect(gx, gy, gw, gh);
+
+      const peakLam = getWienPeak(T);
+      const curMaxBridge = solveBridge(peakLam, T, true).Ig_uA;
+      const globalMaxBridge = solveBridge(getWienPeak(2200), 2200, true).Ig_uA;
+
+      const effectiveScale = autoZoomEnabled 
+        ? Math.max(1e-4, curMaxBridge * 1.15) 
+        : Math.max(1e-4, globalMaxBridge * 1.15);
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 11px sans-serif";
+      ctx.textAlign = "center";
+      const zoomText = autoZoomEnabled ? " [Auto Zoom: ON]" : " [Absolute Scale: 2200 K max]";
+      ctx.fillText(`Recorded Blackbody Spectrum (I_G vs λ) at T = ${T} K${zoomText}`, gx + gw / 2, gy - 8);
+
+      ctx.strokeStyle = "#57606f";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(gx + 44, gy + 15);
+      ctx.lineTo(gx + 44, gy + gh - 22);
+      ctx.lineTo(gx + gw - 18, gy + gh - 22);
+      ctx.stroke();
+
+      ctx.font = "9px sans-serif";
+      ctx.fillStyle = "#8395a7";
+      ctx.textAlign = "center";
+      ctx.fillText("Wavelength λ (nm)", gx + gw / 2 + 10, gy + gh - 6);
+
+      ctx.save();
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Galv. Deflection I_G (μA)", -gy - gh / 2, gx - 4);
+      ctx.restore();
+
+      ctx.textAlign = "right";
+      for (let i = 0; i <= 4; i++) {
+        const py = (gy + gh - 22) - (i / 4) * (gh - 38);
+        const val = ((effectiveScale * (i / 4))).toFixed(effectiveScale < 1 ? 2 : 1);
+        ctx.beginPath();
+        ctx.moveTo(gx + 40, py);
+        ctx.lineTo(gx + 44, py);
+        ctx.stroke();
+        ctx.fillText(val, gx + 38, py + 3);
+      }
+      ctx.textAlign = "center";
+
+      for (let l = 500; l <= 3000; l += 500) {
+        const px = gx + 44 + ((l - 200) / (3400 - 200)) * (gw - 66);
+        ctx.beginPath();
+        ctx.moveTo(px, gy + gh - 22);
+        ctx.lineTo(px, gy + gh - 18);
+        ctx.stroke();
+        ctx.fillText(l >= 1000 ? `${(l/1000).toFixed(1)}μm` : `${l}nm`, px, gy + gh - 9);
+      }
+
+      if (currentLam > 200) {
+        ctx.beginPath();
+        const startX = gx + 44;
+        const baseY = gy + gh - 22;
+        ctx.moveTo(startX, baseY);
+
+        for (let l = 200; l <= currentLam; l += 20) {
+          const state = solveBridge(l, T, radiationOn);
+          const px = gx + 44 + ((l - 200) / (3400 - 200)) * (gw - 66);
+          const py = baseY - (state.Ig_uA / effectiveScale) * (gh - 38);
+          ctx.lineTo(px, py);
+        }
+
+        const lastX = gx + 44 + ((currentLam - 200) / (3400 - 200)) * (gw - 66);
+        ctx.lineTo(lastX, baseY);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(241, 196, 15, 0.18)";
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = "#f1c40f";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      let hasBegun = false;
+
+      for (let l = 200; l <= currentLam; l += 20) {
+        const state = solveBridge(l, T, radiationOn);
+        const px = gx + 44 + ((l - 200) / (3400 - 200)) * (gw - 66);
+        const py = (gy + gh - 22) - (state.Ig_uA / effectiveScale) * (gh - 38);
+        if (!hasBegun) {
+          ctx.moveTo(px, py);
+          hasBegun = true;
+        } else {
+          ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+
+      const currState = solveBridge(currentLam, T, radiationOn);
+      const hx = gx + 44 + ((currentLam - 200) / (3400 - 200)) * (gw - 66);
+      const hy = (gy + gh - 22) - (currState.Ig_uA / effectiveScale) * (gh - 38);
+      ctx.fillStyle = "#ff4757";
+      ctx.beginPath();
+      ctx.arc(hx, hy, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (radiationOn && currentLam >= peakLam) {
+        const pkX = gx + 44 + ((peakLam - 200) / (3400 - 200)) * (gw - 66);
+        const pkY = (gy + gh - 22) - (curMaxBridge / effectiveScale) * (gh - 38);
+
+        ctx.strokeStyle = "#2ed573";
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(pkX, gy + gh - 22);
+        ctx.lineTo(pkX, pkY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#2ed573";
+        ctx.beginPath();
+        ctx.arc(pkX, pkY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = "bold 9.5px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`λ_max ≈ ${Math.round(peakLam)} nm (${(peakLam / 1000).toFixed(2)} μm)`, pkX - 35, pkY - 8);
+      }
+
+      ctx.restore();
+    }
+
+    function getSpectralColor(lam) {
+      if (lam < 380) return "rgba(168, 85, 247, 0.9)";
+      if (lam < 450) return "rgba(99, 102, 241, 0.9)";
+      if (lam < 520) return "rgba(34, 197, 94, 0.9)";
+      if (lam < 600) return "rgba(234, 179, 8, 0.9)";
+      if (lam < 750) return "rgba(239, 68, 68, 0.9)";
+      return "rgba(255, 71, 87, 0.9)";
+    }
+
+    function drawBolometerAbsorber(bx, by, bw, bh, state, radiationOn) {
+      ctx.save();
+      ctx.fillStyle = "#0c1322";
+      ctx.strokeStyle = "#2f3542";
+      ctx.lineWidth = 1;
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.strokeRect(bx, by, bw, bh);
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 11px sans-serif";
+      ctx.fillText("ACTIVE DETECTOR ARM (ENLARGED CROSS-SECTION)", bx + 12, by + 18);
+
+      const sx = bx + 25, sy = by + 88, sw = bw - 50;
+
+      if (radiationOn) {
+        const color = getSpectralColor(scanLam);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.4;
+        
+        ctx.setLineDash([6, 6]);
+        ctx.lineDashOffset = -rayPhase;
+
+        const impactY = sy;
+        for (let rx = bx + 35; rx <= bx + bw - 35; rx += 36) {
+          ctx.beginPath();
+          ctx.moveTo(rx - 14, by + 28);
+          ctx.lineTo(rx, impactY);
+          ctx.stroke();
+
+          ctx.save();
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(rx, impactY, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = color;
+        ctx.font = "italic 10.5px sans-serif";
+        ctx.fillText(`Incident Monochromatic Radiation Streaming (λ = ${scanLam} nm)`, bx + 100, by + 46);
+      } else {
+        ctx.fillStyle = "#e74c3c";
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillText("RADIATION STOPPED (BEAM BLOCKED: Φ = 0, ΔT = 0 K)", bx + 95, by + 50);
+      }
+
+      ctx.fillStyle = "#171717";
+      ctx.fillRect(sx, sy, sw, 18);
+      ctx.strokeStyle = "#404040";
+      ctx.strokeRect(sx, sy, sw, 18);
+      ctx.fillStyle = "#050505";
+      for (let x = sx + 4; x < sx + sw; x += 9) ctx.fillRect(x, sy + 2, 4, 14);
+
+      const heatFrac = Math.min(1, state.deltaT / 12);
+      ctx.fillStyle = `rgb(${Math.round(203 + 52 * heatFrac)}, ${Math.round(213 - 100 * heatFrac)}, ${Math.round(225 - 120 * heatFrac)})`;
+      ctx.fillRect(sx, sy + 18, sw, 22);
+      ctx.strokeStyle = "#94a3b8";
+      ctx.strokeRect(sx, sy + 18, sw, 22);
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.font = "bold 9.5px sans-serif";
+      ctx.fillText("Lampblack Absorbent Coating (α ≈ 0.98 across all wavelengths)", sx + 8, sy + 13);
+      ctx.fillStyle = "#0b0f19";
+      ctx.fillText("Ultra-Thin Platinum Ribbon: R(T) = R₀(1 + α·ΔT)", sx + 8, sy + 33);
+
+      ctx.fillStyle = "#8395a7";
+      ctx.font = "11px sans-serif";
+      ctx.fillText(`Active Resistance = ${state.R_bolo.toFixed(3)} Ω   (ΔT = +${state.deltaT.toFixed(3)} K)`, bx + 110, by + 160);
+
+      ctx.restore();
+    }
+
+    function drawWheatstoneBridge(wx, wy, state) {
+      ctx.save();
+      const ptA = { x: wx + 230, y: wy + 20 };
+      const ptB = { x: wx + 70,  y: wy + 130 };
+      const ptD = { x: wx + 390, y: wy + 130 };
+      const ptC = { x: wx + 230, y: wy + 240 };
+
+      ctx.strokeStyle = "#00d2d3";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(ptA.x, ptA.y);
+      ctx.lineTo(wx + 480, ptA.y);
+      ctx.lineTo(wx + 480, wy + 120);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#ff4757";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(wx + 468, wy + 120); ctx.lineTo(wx + 492, wy + 120); ctx.stroke();
+      ctx.strokeStyle = "#7f8c8d";
+      ctx.beginPath(); ctx.moveTo(wx + 473, wy + 134); ctx.lineTo(wx + 487, wy + 134); ctx.stroke();
+
+      ctx.strokeStyle = "#00d2d3";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(wx + 480, wy + 134);
+      ctx.lineTo(wx + 480, ptC.y);
+      ctx.lineTo(ptC.x, ptC.y);
+      ctx.stroke();
+
+      ctx.fillStyle = "#ecf0f1";
+      ctx.font = "bold 10px sans-serif";
+      ctx.fillText("+ 4V -", wx + 498, wy + 130);
+
+      drawResistorArm(ptA.x, ptA.y, ptB.x, ptB.y, "R1 (Ratio)", "500 Ω");
+      drawResistorArm(ptA.x, ptA.y, ptD.x, ptD.y, "R2 (Ratio)", "500 Ω");
+      drawResistorArm(ptB.x, ptB.y, ptC.x, ptC.y, "R3 (Comp.)", "50.0 Ω");
+      drawBolometerArm(ptD.x, ptD.y, ptC.x, ptC.y, state.R_bolo);
+
+      const gx = (ptB.x + ptD.x) / 2;
+      const gy = (ptB.y + ptD.y) / 2;
+      const gr = 32;
+
+      ctx.strokeStyle = "#8395a7";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(ptB.x, ptB.y); ctx.lineTo(gx - gr, gy);
+      ctx.moveTo(gx + gr, gy);   ctx.lineTo(ptD.x, ptD.y);
+      ctx.stroke();
+
+      ctx.fillStyle = "#05070d";
+      ctx.beginPath(); ctx.arc(gx, gy, gr, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#00d2d3"; ctx.lineWidth = 2; ctx.stroke();
+
+      const peakVal = solveBridge(getWienPeak(furnaceTemp), furnaceTemp, true).Ig_uA;
+      const norm = Math.min(1.2, state.Ig_uA / Math.max(1e-4, peakVal));
+      const needleAngle = (-90 + norm * 50) * Math.PI / 180;
+
+      ctx.strokeStyle = "#ff4757";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy + 3);
+      ctx.lineTo(gx + (gr - 6) * Math.cos(needleAngle), gy + (gr - 6) * Math.sin(needleAngle));
+      ctx.stroke();
+
+      ctx.fillStyle = "#f1c40f";
+      ctx.beginPath(); ctx.arc(gx, gy + 3, 3, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = "#00d2d3";
+      ctx.font = "bold 9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("G (Galv)", gx, gy + 16);
+
+      drawBridgeNode(ptA.x, ptA.y, "A (+4V)", 0, -9);
+      drawBridgeNode(ptB.x, ptB.y, "B (Ref: 0.364V)", -24, 4);
+      drawBridgeNode(ptD.x, ptD.y, `D (${(Vs * state.R_bolo / (R2 + state.R_bolo)).toFixed(3)}V)`, 22, 4);
+      drawBridgeNode(ptC.x, ptC.y, "C (0V)", 0, 16);
+
+      ctx.restore();
+    }
+
+    function drawResistorArm(x1, y1, x2, y2, label, val) {
+      const dist = Math.hypot(x2 - x1, y2 - y1);
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.save();
+      ctx.translate(x1, y1);
+      ctx.rotate(angle);
+      ctx.strokeStyle = "#00d2d3"; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(dist/2 - 20, 0); ctx.moveTo(dist/2 + 20, 0); ctx.lineTo(dist, 0); ctx.stroke();
+
+      ctx.strokeStyle = "#f1c40f";
+      ctx.beginPath();
+      const seg = 40 / 6;
+      let s = dist/2 - 20;
+      ctx.moveTo(s, 0);
+      ctx.lineTo(s + seg*0.5, -6); ctx.lineTo(s + seg*1.5, 6); ctx.lineTo(s + seg*2.5, -6);
+      ctx.lineTo(s + seg*3.5, 6); ctx.lineTo(s + seg*4.5, -6); ctx.lineTo(s + seg*5.5, 6); ctx.lineTo(s + 40, 0);
+      ctx.stroke();
+
+      ctx.rotate(-angle);
+      const mx = (dist/2) * Math.cos(angle);
+      const my = (dist/2) * Math.sin(angle);
+      ctx.fillStyle = "#8395a7"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(label, mx, my - 10);
+      ctx.fillText(val, mx, my + 16);
+      ctx.restore();
+    }
+
+    function drawBolometerArm(x1, y1, x2, y2, R_bolo) {
+      const dist = Math.hypot(x2 - x1, y2 - y1);
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.save();
+      ctx.translate(x1, y1);
+      ctx.rotate(angle);
+      ctx.strokeStyle = "#00d2d3"; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(dist/2 - 24, 0); ctx.moveTo(dist/2 + 24, 0); ctx.lineTo(dist, 0); ctx.stroke();
+
+      ctx.fillStyle = "#171717"; ctx.fillRect(dist/2 - 24, -9, 48, 18);
+      ctx.strokeStyle = "#ff4757"; ctx.lineWidth = 1.8; ctx.strokeRect(dist/2 - 24, -9, 48, 18);
+
+      ctx.rotate(-angle);
+      const mx = (dist/2) * Math.cos(angle);
+      const my = (dist/2) * Math.sin(angle);
+      ctx.fillStyle = "#ff4757"; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("Active Pt Strip", mx, my - 12);
+      ctx.fillText(`${R_bolo.toFixed(3)} Ω`, mx, my + 18);
+      ctx.restore();
+    }
+
+    function drawBridgeNode(x, y, label, ox, oy) {
+      ctx.fillStyle = "#00d2d3";
+      ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ecf0f1";
+      ctx.font = "9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(label, x + ox, y + oy);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const state = solveBridge(scanLam, furnaceTemp, isRadiationActive);
+
+      rayPhase = (rayPhase + 0.8) % 12;
+
+      drawBlackbodyGraph(35, 30, 520, 220, scanLam, furnaceTemp, isRadiationActive);
+      drawBolometerAbsorber(585, 30, 500, 220, state, isRadiationActive);
+      drawWheatstoneBridge(260, 280, state);
+
+      requestAnimationFrame(draw);
+    }
+
+    updateMetrics();
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
