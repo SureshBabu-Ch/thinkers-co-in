@@ -6,6 +6,37 @@
     <title>Blackbody Radiation Dashboard</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
+        .formula-callout {
+            background: #edf2f7;
+            border-left: 4px solid #3182ce;
+            padding: 8px 14px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .formula-callout.micro { border-left-color: #805ad5; }
+        .formula-callout.macro { border-left-color: #dd6b20; }
+        .formula-title {
+            font-weight: bold;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        .math-eq {
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1.05em;
+            font-weight: bold;
+            color: #1a202c;
+            display: block;
+            margin: 2px 0;
+        }
+        .math-desc {
+            font-size: 0.85em;
+            color: #718096;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f4f9;
@@ -60,39 +91,6 @@
             color: #2c3e50;
         }
         
-        /* Formula Callout Styling */
-        .formula-callout {
-            background: #edf2f7;
-            border-left: 4px solid #3182ce;
-            padding: 8px 14px;
-            margin-bottom: 12px;
-            border-radius: 4px;
-            font-size: 0.9em;
-            line-height: 1.5;
-        }
-        .formula-callout.micro { border-left-color: #805ad5; }
-        .formula-callout.macro { border-left-color: #dd6b20; }
-        .formula-title {
-            font-weight: bold;
-            font-size: 0.85em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #4a5568;
-            margin-bottom: 4px;
-        }
-        .math-eq {
-            font-family: 'Cambria Math', 'Times New Roman', serif;
-            font-size: 1.05em;
-            font-weight: bold;
-            color: #1a202c;
-            display: block;
-            margin: 2px 0;
-        }
-        .math-desc {
-            font-size: 0.85em;
-            color: #718096;
-        }
-
         /* SVG Styling */
         .axis-label { font-size: 12px; font-weight: bold; }
         .line-planck { fill: none; stroke: #e74c3c; stroke-width: 3px; }
@@ -137,7 +135,7 @@
                 <div class="formula-title">Formulas Used in Macroscopic Simulation:</div>
                 <div class="math-eq" style="color: #c53030;">• Wien's Law (Peak): &lambda;<sub>max</sub> = b / T = (2.898&times;10<sup>6</sup> nm&middot;K) / T</div>
                 <div class="math-eq" style="color: #2b6cb0;">• Rayleigh–Jeans (Failure): B<sub>&lambda;</sub> = (2 c k<sub>B</sub> T) / &lambda;<sup>4</sup></div>
-                <div class="math-eq" style="color: #e53e3e;">• Planck's Law (Exact): B<sub>&lambda;</sub> = (2 h c&sup2;) / [&lambda;<sup>5</sup> &times; (e<sup>(hc / &lambda;k<sub>B</sub>T)</sup> - 1)]</div>
+                <div class="math-eq" style="color: #e53e3e;">• Planck's Law (Coincides with Experimental Result): B<sub>&lambda;</sub> = (2 h c&sup2;) / [&lambda;<sup>5</sup> &times; (e<sup>(hc / &lambda;k<sub>B</sub>T)</sup> - 1)]</div>
             </div>
             <div id="chart2"></div>
         </div>
