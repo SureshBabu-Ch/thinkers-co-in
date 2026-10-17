@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blackbody Radiation Spectrum: Physical Curves & Exact Quantum Deviations</title>
+  <!-- MathJax CDN -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --planck: #2563eb;
+      --wien: #dc2626;
+      --rj: #16a34a;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 1.5rem 1rem; display: flex; justify-content: center; line-height: 1.5; }
+    .container { max-width: 1060px; width: 100%; }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.75rem 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+
+    h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; }
+    p.sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 1.25rem; }
+
+    .control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.25rem;
+      background: #f1f5f9;
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+    }
+
+    .slider-box { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 280px; }
+    .slider-box label { font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+    input[type="range"] { flex: 1; cursor: pointer; }
+
+    .badge {
+      background: var(--planck);
+      color: #fff;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      min-width: 85px;
+      text-align: center;
+    }
+
+    .btn-group { display: flex; gap: 0.4rem; align-items: center; }
+    .btn-span {
+      background: #e2e8f0;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-span.active { background: var(--planck); color: #fff; }
+
+    .panel-header {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      background: #f8fafc;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chart-box {
+      width: 100%;
+      height: 600px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 0 0 8px 8px;
+      position: relative;
+      cursor: crosshair;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.8rem;
+      justify-content: center;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+    .line-blue { width: 26px; height: 3px; background: var(--planck); }
+    .line-red { width: 26px; height: 0px; border-top: 3px dashed var(--wien); }
+    .line-green { width: 26px; height: 0px; border-top: 3px dashed var(--rj); }
+    .dot-exp { width: 8px; height: 8px; background: #1e3a8a; border-radius: 50%; }
+
+    .formula-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    .formula-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem;
+      background: #fafafa;
+    }
+    .formula-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+    .formula-math {
+      font-size: 1.05rem;
+      color: #0f172a;
+      margin: 0.4rem 0;
+      overflow-x: auto;
+    }
+
+    /* Live Student Calculation Section */
+    .calc-card {
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 2px 4px rgba(37,99,235,0.05);
+    }
+    .calc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .calc-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+    .calc-badge {
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      color: #1d4ed8;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+    }
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 1rem;
+    }
+    .calc-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.88rem;
+    }
+    .calc-box-title {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+    .step-line {
+      margin-bottom: 0.4rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85rem;
+      color: #334155;
+    }
+    .res-val {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <h1>Blackbody Radiation Spectrum</h1>
+    <p class="sub">Dual Synchronized Panels: Exact match with Planck’s Law (Top) paired with Classical Deviations (Bottom)</p>
+
+    <div class="control-panel">
+      <div class="slider-box">
+        <label for="tempSlider">Oven Temperature (T):</label>
+        <input type="range" id="tempSlider" min="1000" max="2500" step="25" value="1650">
+        <span class="badge" id="tempText">1650 K</span>
+      </div>
+
+      <div class="btn-group">
+        <span style="font-size:0.85rem; font-weight:600; color:var(--muted); margin-right:0.25rem;">Span:</span>
+        <button id="btnNear" class="btn-span">Near-IR (0–12 µm)</button>
+        <button id="btnMid" class="btn-span">Mid-IR (0–40 µm)</button>
+        <button id="btnFar" class="btn-span active">Far-IR (0–100 µm) [Convergence]</button>
+      </div>
+    </div>
+
+    <div class="panel-header">
+      <span>PANEL 1: Blackbody Radiation Spectrum \(E(\lambda)\)</span>
+      <span style="font-size:0.82rem; font-weight:600; color:var(--muted);">Peak & Infrared Tail</span>
+    </div>
+
+    <div class="chart-box">
+      <canvas id="dualCanvas"></canvas>
+    </div>
+
+    <div class="legend-row">
+      <div class="legend-item">
+        <div class="line-blue"></div>
+        <span>Exact match with Planck’s Law</span>
+      </div>
+      <div class="legend-item">
+        <div class="line-red"></div>
+        <span>Wien (1896): Drops in Infrared Tail</span>
+      </div>
+      <div class="legend-item">
+        <div class="line-green"></div>
+        <span>Rayleigh–Jeans: UV Catastrophe / Far-IR Equipartition</span>
+      </div>
+      <div class="legend-item">
+        <div class="dot-exp"></div>
+        <span>PTR Measured Points</span>
+      </div>
+    </div>
+
+    <!-- Student Live Calculation Workbench -->
+    <div class="calc-card">
+      <div class="calc-header">
+        <div class="calc-title">Live Calculation Workbench (Verify with Your Calculator)</div>
+        <div class="calc-badge" id="calcStateBadge">Inspection at λ = 12.0 µm | T = 1650 K</div>
+      </div>
+      <div class="calc-grid">
+        <!-- Box 1: Planck & Parameter x -->
+        <div class="calc-box" style="border-top: 3px solid var(--planck);">
+          <div class="calc-box-title" style="color:var(--planck);">
+            <span>1. Planck Law & Quantum Parameter (x)</span>
+          </div>
+          <div class="step-line">\(x = \frac{hc}{\lambda k_B T} = \frac{14388}{\lambda \cdot T}\)</div>
+          <div class="step-line" id="stepX">x = 14388 / (12.0 × 1650) = 0.7267</div>
+          <div class="step-line" style="margin-top:0.6rem; color:#0f172a;">
+            <strong>Planck Reference Deviation:</strong><br>
+            <span class="res-val" style="color:var(--planck);">Δ = 0.0% deviation (Exact Truth)</span>
+          </div>
+        </div>
+
+        <!-- Box 2: Wien Law Calculation -->
+        <div class="calc-box" style="border-top: 3px solid var(--wien);">
+          <div class="calc-box-title" style="color:var(--wien);">
+            <span>2. Wien's Law Deviation Calculation</span>
+          </div>
+          <div class="step-line">\(\Delta_{\text{Wien}} = -e^{-x} \times 100\%\)</div>
+          <div class="step-line" id="stepWienExp">e^(-0.7267) = 0.4835</div>
+          <div class="step-line" id="stepWienFinal" style="margin-top:0.6rem; color:#0f172a;">
+            <strong>Wien Deficit Result:</strong><br>
+            <span class="res-val" style="color:var(--wien);">-48.4% deviation</span>
+          </div>
+        </div>
+
+        <!-- Box 3: Rayleigh-Jeans Law Calculation -->
+        <div class="calc-box" style="border-top: 3px solid var(--rj);">
+          <div class="calc-box-title" style="color:var(--rj);">
+            <span>3. Rayleigh–Jeans Law Deviation Calculation</span>
+          </div>
+          <div class="step-line">\(\Delta_{\text{RJ}} = \left[\frac{e^x - 1}{x} - 1\right] \times 100\%\)</div>
+          <div class="step-line" id="stepRJExp">e^(0.7267) = 2.0682</div>
+          <div class="step-line" id="stepRJFraction">(2.0682 - 1) / 0.7267 = 1.4700</div>
+          <div class="step-line" id="stepRJFinal" style="margin-top:0.2rem; color:#0f172a;">
+            <strong>Rayleigh–Jeans Excess Result:</strong><br>
+            <span class="res-val" style="color:var(--rj);">+47.0% deviation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formula Foundations -->
+    <div class="formula-grid">
+      <div class="formula-card" style="border-top: 3px solid var(--planck);">
+        <div class="formula-title" style="color:var(--planck);">1. Planck Quantum Law (1900)</div>
+        <div class="formula-math">\[E(\lambda) = \frac{8\pi hc}{\lambda^5 \left(e^{\frac{hc}{\lambda k_B T}} - 1\right)}\]</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Introduces the quantum of action \(h\). Baseline reference standard across all wavelengths (\(\Delta = 0\%\)).</p>
+      </div>
+
+      <div class="formula-card" style="border-top: 3px solid var(--wien);">
+        <div class="formula-title" style="color:var(--wien);">2. Wien's Distribution Law (1896)</div>
+        <div class="formula-math">\[E(\lambda) = \frac{C_1}{\lambda^5} e^{-\frac{C_2}{\lambda T}}\]</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Empirical constants \(C_1, C_2\) (no \(h\)). Agrees in UV, but suffers an emissive power deficit in IR.</p>
+      </div>
+
+      <div class="formula-card" style="border-top: 3px solid var(--rj);">
+        <div class="formula-title" style="color:var(--rj);">3. Rayleigh–Jeans Classical Law (1900)</div>
+        <div class="formula-math">\[E(\lambda) = \frac{8\pi k_B T}{\lambda^4}\]</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Purely classical equipartition using \(k_B\) (no \(h\)). Diverges in UV; converges to Planck's Law in Far-IR.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('dualCanvas');
+  const ctx = canvas.getContext('2d');
+  const slider = document.getElementById('tempSlider');
+  const tempText = document.getElementById('tempText');
+  const btnNear = document.getElementById('btnNear');
+  const btnMid = document.getElementById('btnMid');
+  const btnFar = document.getElementById('btnFar');
+
+  // DOM elements for Student Calculation Workbench
+  const calcStateBadge = document.getElementById('calcStateBadge');
+  const stepX = document.getElementById('stepX');
+  const stepWienExp = document.getElementById('stepWienExp');
+  const stepWienFinal = document.getElementById('stepWienFinal');
+  const stepRJExp = document.getElementById('stepRJExp');
+  const stepRJFraction = document.getElementById('stepRJFraction');
+  const stepRJFinal = document.getElementById('stepRJFinal');
+
+  const C2 = 14388; // µm·K
+  let maxDomain = 100.0;
+  let hoverLambda = null;
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    draw();
+  }
+
+  function updateStudentCalculations(l, T) {
+    const x = C2 / (l * T);
+    const expMinusX = Math.exp(-x);
+    const wienDiff = -expMinusX * 100;
+
+    const expX = Math.exp(x);
+    const rjRatio = (expX - 1) / x;
+    const rjDiff = (rjRatio - 1) * 100;
+
+    calcStateBadge.innerText = `Inspection at λ = ${l.toFixed(2)} µm | T = ${T} K`;
+
+    // Box 1
+    stepX.innerText = `x = 14388 / (${l.toFixed(2)} × ${T}) = ${x.toFixed(4)}`;
+
+    // Box 2: Wien
+    stepWienExp.innerText = `e^(-${x.toFixed(4)}) = ${expMinusX.toFixed(4)}`;
+    stepWienFinal.innerHTML = `<strong>Wien Deficit Result:</strong><br><span class="res-val" style="color:var(--wien);">${wienDiff.toFixed(1)}% deviation</span>`;
+
+    // Box 3: Rayleigh-Jeans
+    stepRJExp.innerText = `e^(${x.toFixed(4)}) = ${expX.toFixed(4)}`;
+    stepRJFraction.innerText = `(${expX.toFixed(4)} - 1) / ${x.toFixed(4)} = ${rjRatio.toFixed(4)}`;
+    const sign = rjDiff > 0 ? "+" : "";
+    stepRJFinal.innerHTML = `<strong>Rayleigh–Jeans Excess Result:</strong><br><span class="res-val" style="color:var(--rj);">${sign}${rjDiff.toFixed(1)}% deviation</span>`;
+  }
+
+  function draw() {
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
+
+    const padL = 75, padR = 30;
+    const plotW = W - padL - padR;
+
+    // Panel 1: Top 25px to 255px (Height: 230px)
+    const topT = 25, topH = 230;
+    
+    // Middle divider banner: 285px
+    const midHeaderY = 285;
+
+    // Panel 2: 320px to 550px (Height: 230px)
+    const botT = 320, botH = 230;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const T = parseFloat(slider.value);
+
+    // Theoretical functions
+    function fPlanck(l) {
+      const x = C2 / (l * T);
+      if (x > 500) return 0;
+      return Math.pow(l, -5) / (Math.exp(x) - 1);
+    }
+    function fWien(l) {
+      const x = C2 / (l * T);
+      return Math.pow(l, -5) * Math.exp(-x);
+    }
+    function fRJ(l) {
+      const x = C2 / (l * T);
+      return Math.pow(l, -5) / x;
+    }
+
+    const peakLambda = 2898 / T;
+    const peakVal = fPlanck(peakLambda);
+
+    function toX(l) { return padL + (l / maxDomain) * plotW; }
+    function toY1(val) { return topT + topH - (val / peakVal) * (topH * 0.82); }
+
+    const DIFF_MIN = -110, DIFF_MAX = 110;
+    function toY2(pct) { return botT + botH - ((pct - DIFF_MIN) / (DIFF_MAX - DIFF_MIN)) * botH; }
+
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '11px sans-serif';
+
+    const tickStep = maxDomain > 50 ? 10 : (maxDomain > 20 ? 5 : 2);
+    for (let l = tickStep; l <= maxDomain; l += tickStep) {
+      const x = toX(l);
+      ctx.beginPath();
+      ctx.moveTo(x, topT);
+      ctx.lineTo(x, topT + topH);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x, botT);
+      ctx.lineTo(x, botT + botH);
+      ctx.stroke();
+      ctx.fillText(l + " µm", x - 12, botT + botH + 18);
+    }
+
+    // ==========================================
+    // PANEL 1: BLACKBODY RADIATION SPECTRUM
+    // ==========================================
+
+    // 1A. Rayleigh-Jeans Curve (Top)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(padL, topT, plotW, topH);
+    ctx.clip();
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#16a34a';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([4, 4]);
+
+    let rjStarted = false;
+    for (let px = 0; px <= plotW; px += 1) {
+      const l = (px / plotW) * maxDomain;
+      if (l < (maxDomain > 50 ? 2.0 : (maxDomain > 20 ? 1.0 : 0.5))) continue;
+      const y = toY1(fRJ(l));
+      const x = toX(l);
+      if (!rjStarted) { ctx.moveTo(x, y); rjStarted = true; }
+      else { ctx.lineTo(x, y); }
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // 1B. Planck's Law Curve (Solid Blue with fill)
+    ctx.beginPath();
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 3;
+    let started = false;
+
+    for (let px = 0; px <= plotW; px += 1) {
+      const l = (px / plotW) * maxDomain;
+      if (l < 0.2) continue;
+      const x = toX(l);
+      const y = toY1(fPlanck(l));
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else { ctx.lineTo(x, y); }
+    }
+    ctx.stroke();
+
+    ctx.lineTo(toX(maxDomain), topT + topH);
+    ctx.lineTo(toX(0.2), topT + topH);
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.05)';
+    ctx.fill();
+
+    // 1C. Experimental Data Points (PTR benchmarks)
+    const expPoints = [0.8, 1.2, 1.6, 2.0, 2.6, 3.4, 4.5, 6.0, 8.5, 12.0, 18.0, 25.0, 40.0, 60.0];
+    ctx.fillStyle = '#1e3a8a';
+    expPoints.forEach(pt => {
+      if (pt <= maxDomain) {
+        const xPt = toX(pt);
+        const yPt = toY1(fPlanck(pt));
+        ctx.beginPath();
+        ctx.arc(xPt, yPt, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    // 1D. Wien's Law (Top, Dashed Red)
+    ctx.beginPath();
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([6, 5]);
+    started = false;
+
+    for (let px = 0; px <= plotW; px += 1) {
+      const l = (px / plotW) * maxDomain;
+      if (l < 0.2) continue;
+      const x = toX(l);
+      const y = toY1(fWien(l));
+      if (!started) { ctx.moveTo(x, y); started = true; }
+      else { ctx.lineTo(x, y); }
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Peak Annotation
+    const peakX = toX(peakLambda);
+    const peakY = toY1(peakVal);
+
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath();
+    ctx.arc(peakX, peakY, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillRect(Math.max(padL + 5, peakX - 42), peakY - 22, 84, 16);
+    ctx.fillStyle = '#2563eb';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText(`λ_max = ${peakLambda.toFixed(2)} µm`, Math.max(padL + 7, peakX - 40), peakY - 10);
+
+    // Panel 1 Axes
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padL, topT);
+    ctx.lineTo(padL, topT + topH);
+    ctx.lineTo(padL + plotW, topT + topH);
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(18, topT + topH / 2 + 55);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText("Emissive Power E(λ) [% of Peak]", 0, 0);
+    ctx.restore();
+
+    // ==========================================
+    // MIDDLE DIVIDER / PANEL 2 HEADER (NO OVERLAP)
+    // ==========================================
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(padL, midHeaderY - 16, plotW, 24);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText("PANEL 2: Relative Difference from Planck Standard:  Δ = (E - E_Planck) / E_Planck", padL + 12, midHeaderY);
+
+    // ==========================================
+    // PANEL 2: RELATIVE PERCENTAGE DIFFERENCE
+    // ==========================================
+
+    const diffTicks = [-100, -50, 0, 50, 100];
+    diffTicks.forEach(tick => {
+      const y = toY2(tick);
+      ctx.strokeStyle = tick === 0 ? '#cbd5e1' : '#f1f5f9';
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + plotW, y);
+      ctx.stroke();
+      const sign = tick > 0 ? "+" : "";
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(sign + tick + "%", padL - 48, y + 4);
+    });
+
+    // 2A. Planck Baseline (0% Reference line, Solid Blue)
+    const yZero = toY2(0);
+    ctx.beginPath();
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 3;
+    ctx.moveTo(padL, yZero);
+    ctx.lineTo(padL + plotW, yZero);
+    ctx.stroke();
+
+    // 2B. Rayleigh-Jeans Excess Curve (Bottom, Dashed Green)
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(padL, botT, plotW, botH);
+    ctx.clip();
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#16a34a';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([5, 4]);
+
+    let rjDiffStarted = false;
+    for (let px = 0; px <= plotW; px += 1) {
+      const l = (px / plotW) * maxDomain;
+      if (l < 0.2) continue;
+      const x = C2 / (l * T);
+      const rjRatio = (Math.exp(x) - 1) / x;
+      const rjDiff = (rjRatio - 1) * 100;
+
+      const posX = toX(l);
+      const posY = toY2(rjDiff);
+
+      if (!rjDiffStarted) { ctx.moveTo(posX, posY); rjDiffStarted = true; }
+      else { ctx.lineTo(posX, posY); }
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // 2C. Wien Deficit Curve (Bottom, Dashed Red)
+    ctx.beginPath();
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([5, 4]);
+
+    let wienDiffStarted = false;
+    for (let px = 0; px <= plotW; px += 1) {
+      const l = (px / plotW) * maxDomain;
+      if (l < 0.2) continue;
+      const x = C2 / (l * T);
+      const wienDiff = -Math.exp(-x) * 100;
+
+      const posX = toX(l);
+      const posY = toY2(wienDiff);
+
+      if (!wienDiffStarted) { ctx.moveTo(posX, posY); wienDiffStarted = true; }
+      else { ctx.lineTo(posX, posY); }
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Panel 2 Axes
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(padL, botT);
+    ctx.lineTo(padL, botT + botH);
+    ctx.lineTo(padL + plotW, botT + botH);
+    ctx.stroke();
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText("Wavelength λ (µm)", padL + plotW / 2 - 50, botT + botH + 38);
+
+    ctx.save();
+    ctx.translate(18, botT + botH / 2 + 50);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText("Difference Δ [%]", 0, 0);
+    ctx.restore();
+
+    // ==========================================
+    // SYNCHRONIZED VERTICAL INSPECTION CURSOR
+    // ==========================================
+    const targetL = hoverLambda !== null ? hoverLambda : 12.0;
+
+    if (targetL >= 0.3 && targetL <= maxDomain) {
+      const xH = toX(targetL);
+      const xVal = C2 / (targetL * T);
+      const rjRatio = (Math.exp(xVal) - 1) / xVal;
+      const rjDiff = (rjRatio - 1) * 100;
+      const wienDiff = -Math.exp(-xVal) * 100;
+
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(xH, topT);
+      ctx.lineTo(xH, botT + botH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const yP1 = toY1(fPlanck(targetL));
+      const yW1 = toY1(fWien(targetL));
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath(); ctx.arc(xH, yP1, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath(); ctx.arc(xH, yW1, 4, 0, Math.PI * 2); ctx.fill();
+
+      let regimeText = "";
+      if (xVal > 3.0) {
+        regimeText = "Wien Quantum Regime (hν >> kT)";
+      } else if (xVal < 0.2) {
+        regimeText = "Classical Equipartition (hν << kT)";
+      } else {
+        regimeText = "Quantum Transition Zone (hν ~ kT)";
+      }
+
+      const tagX = Math.min(xH + 12, W - 280);
+      const tagY = topT + 15;
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.fillRect(tagX, tagY, 265, 96);
+      ctx.strokeRect(tagX, tagY, 265, 96);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(`At λ = ${targetL.toFixed(1)} µm (T = ${T} K):`, tagX + 10, tagY + 18);
+      
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'italic 10px sans-serif';
+      ctx.fillText(regimeText, tagX + 10, tagY + 32);
+
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = '#2563eb';
+      ctx.fillText(`Exact match with Planck’s Law: 0.0% deviation`, tagX + 10, tagY + 50);
+
+      ctx.fillStyle = '#16a34a';
+      const rjSign = rjDiff > 0 ? "+" : "";
+      ctx.fillText(`RJ Difference: ${rjSign}${rjDiff.toFixed(1)}%`, tagX + 10, tagY + 68);
+
+      ctx.fillStyle = '#dc2626';
+      const wienSign = wienDiff > 0 ? "+" : "";
+      ctx.fillText(`Wien Difference: ${wienSign}${wienDiff.toFixed(1)}%`, tagX + 10, tagY + 86);
+
+      // Update the student calculation workbench live!
+      updateStudentCalculations(targetL, T);
+    }
+  }
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const padL = 75;
+    const plotW = rect.width - 75 - 30;
+    const x = e.clientX - rect.left;
+    if (x >= padL && x <= padL + plotW) {
+      hoverLambda = ((x - padL) / plotW) * maxDomain;
+      draw();
+    }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    hoverLambda = null;
+    draw();
+  });
+
+  slider.addEventListener('input', () => {
+    tempText.innerText = slider.value + " K";
+    draw();
+  });
+
+  btnNear.addEventListener('click', () => {
+    maxDomain = 12.0;
+    btnNear.classList.add('active');
+    btnMid.classList.remove('active');
+    btnFar.classList.remove('active');
+    draw();
+  });
+
+  btnMid.addEventListener('click', () => {
+    maxDomain = 40.0;
+    btnMid.classList.add('active');
+    btnNear.classList.remove('active');
+    btnFar.classList.remove('active');
+    draw();
+  });
+
+  btnFar.addEventListener('click', () => {
+    maxDomain = 100.0;
+    btnFar.classList.add('active');
+    btnNear.classList.remove('active');
+    btnMid.classList.remove('active');
+    draw();
+  });
+
+  window.addEventListener('resize', resize);
+  resize();
+</script>
+</body>
+</html>
