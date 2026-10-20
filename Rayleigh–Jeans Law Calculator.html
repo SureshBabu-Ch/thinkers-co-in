@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rayleigh–Jeans Law Calculator (Solar Spectrum)</title>
+
+  <!-- MathJax Configuration and Script for LaTeX Rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['[', ']']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-light: #14b8a6;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #dc2626;
+      --exp-color: #15803d;
+      --uv-catastrophe: #fef2f2;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 30px 15px;
+      margin: 0;
+    }
+
+    .container {
+      background: var(--card);
+      border-radius: 12px;
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      font-size: 1.5rem;
+    }
+
+    /* Classical Physics Callout Notice */
+    .classical-note {
+      background: #fffbeb;
+      border-left: 4px solid #d97706;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #92400e;
+    }
+
+    .classical-note strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 0.95rem;
+    }
+
+    .formula-box {
+      background: #f0fdfa;
+      border-left: 4px solid var(--primary-light);
+      padding: 14px 18px;
+      border-radius: 4px;
+      margin-bottom: 22px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .formula-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .constants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .const-card {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.88rem;
+    }
+
+    .const-card strong {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .const-card .val {
+      font-weight: 600;
+      color: var(--text);
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+
+    .catastrophe-highlight {
+      background: var(--uv-catastrophe);
+      border: 1px solid #fecaca;
+    }
+
+    .catastrophe-highlight strong {
+      color: #991b1b;
+    }
+
+    .catastrophe-highlight .val {
+      color: var(--accent);
+    }
+
+    .input-section {
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary-light);
+    }
+
+    button.calc-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.calc-btn:hover {
+      background: #115e59;
+    }
+
+    .quick-btns {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .quick-btn:hover {
+      background: #f1f5f9;
+      color: var(--text);
+      border-color: #94a3b8;
+    }
+
+    .results {
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    td.val-col {
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .region-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    .reg-uv { background: #ede9fe; color: #6d28d9; }
+    .reg-vis { background: #dcfce7; color: #15803d; }
+    .reg-ir { background: #fee2e2; color: #b91c1c; }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Rayleigh–Jeans Law Calculator</h2>
+  
+  <!-- Explicit Classical Physics Disclaimer -->
+  <div class="classical-note">
+    <strong>Note on Classical Equipartition Derivation:</strong>
+    This calculation is performed purely according to the Rayleigh–Jeans Law (1900–1905). It relies strictly on classical electrodynamics (cavity mode density $\propto \lambda^{-4}$) and the classical equipartition theorem of energy ($\bar{\epsilon} = k_B T$). Comparing it against the real experimental blackbody observation demonstrates the classical failure known as the <strong>Ultraviolet Catastrophe</strong>.
+  </div>
+
+  <div class="formula-box">
+    <span class="formula-title">Rayleigh–Jeans Spectral Distribution Equation:</span>
+    $$E_\lambda(\lambda, T) = \frac{2\pi c \, k_B T}{\lambda^4}$$
+    <span style="font-size: 0.88rem; color: var(--text-muted); display: block; margin-top: 4px;">
+      (Corresponding Energy Density inside cavity: $\rho_\lambda = \frac{8\pi k_B T}{\lambda^4}$)
+    </span>
+  </div>
+
+  <!-- Constants Block -->
+  <div class="constants-grid">
+    <div class="const-card">
+      <strong>Effective Solar Temp (T)</strong>
+      <span class="val">5778 K</span>
+    </div>
+    <div class="const-card">
+      <strong>Boltzmann Constant (k_B)</strong>
+      <span class="val">1.38065 × 10⁻²³ J/K</span>
+    </div>
+    <div class="const-card">
+      <strong>Speed of Light (c)</strong>
+      <span class="val">2.99792 × 10⁸ m/s</span>
+    </div>
+    <div class="const-card catastrophe-highlight">
+      <strong>Classical Prediction at λ → 0</strong>
+      <span class="val">E_λ → ∞ (UV Catastrophe)</span>
+    </div>
+  </div>
+
+  <!-- Input Block -->
+  <div class="input-section">
+    <label for="lambdaInput">Enter Wavelength (&lambda;) in nanometers (nm):</label>
+    <div class="input-group">
+      <input type="number" id="lambdaInput" placeholder="e.g. 700" value="700" min="1" step="any">
+      <button class="calc-btn" onclick="calculate()">Calculate</button>
+    </div>
+    <div class="quick-btns">
+      <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">Quick test:</span>
+      <button type="button" class="quick-btn" onclick="setLambda(200)">200 nm (Extreme UV Catastrophe)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(501.5)">501.5 nm (Solar Peak Region)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(800)">800 nm (Near IR)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(1500)">1500 nm (Mid IR)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(2500)">2500 nm (Classical Agreement)</button>
+    </div>
+  </div>
+
+  <!-- Results Table -->
+  <div class="results">
+    <table>
+      <thead>
+        <tr>
+          <th>Quantity / Parameter</th>
+          <th>Calculated Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Spectral Regime</td>
+          <td id="resPosition">—</td>
+        </tr>
+        <tr>
+          <td>Denominator Factor (&lambda;<sup>4</sup>)</td>
+          <td class="val-col" id="resLambda4" style="color: var(--primary);">—</td>
+        </tr>
+        <tr>
+          <td>Average Thermal Energy per Mode ($\bar{\epsilon} = k_B T$)</td>
+          <td class="val-col" id="resEquipartition" style="color: var(--primary);">—</td>
+        </tr>
+        <tr>
+          <td>Numerator Constant Factor ($2\pi c \, k_B T$)</td>
+          <td class="val-col" id="resNumerator" style="color: var(--primary);">—</td>
+        </tr>
+        <tr>
+          <td><strong>Rayleigh–Jeans Classical (E<sub>&lambda;</sub>)</strong></td>
+          <td class="val-col" id="resERJ" style="color: var(--accent); font-size: 1.05rem;">—</td>
+        </tr>
+        <tr>
+          <td><strong>Real Experimental Observation (E<sub>&lambda;</sub>)</strong></td>
+          <td class="val-col" id="resEReal" style="color: var(--exp-color); font-size: 1.05rem;">—</td>
+        </tr>
+        <tr>
+          <td><strong>Discrepancy (RJ / Experimental)</strong></td>
+          <td class="val-col" id="resDeviation" style="font-size: 1rem;">—</td>
+        </tr>
+        <tr>
+          <td>Physical Significance for Students</td>
+          <td id="resNote" style="font-size: 0.88rem; line-height: 1.45;">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer with Copyright & Institutional Affiliation -->
+  <footer>
+    &copy; All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.<br>
+    Mobile: 9000837556 &nbsp;|&nbsp; Email: <a href="mailto:sureshbabuchallari@gmail.com">sureshbabuchallari@gmail.com</a>
+  </footer>
+</div>
+
+<script>
+  // Fundamental Physical Constants
+  const T = 5778; // Solar surface temperature in K
+  const kB = 1.380649e-23; // J/K
+  const c = 2.99792458e8;  // m/s
+  const h = 6.62607015e-34; // J*s (used strictly for the real experimental reference value)
+
+  function setLambda(val) {
+    document.getElementById('lambdaInput').value = val;
+    calculate();
+  }
+
+  function formatSci(num, decimals = 3) {
+    if (num === 0) return "0";
+    if (num >= 0.01 && num < 1000) return num.toFixed(decimals);
+    return num.toExponential(decimals).replace('e', ' × 10^').replace('+', '');
+  }
+
+  // Real Observed Emission in W/(m^2 * nm)
+  function getRealE_nm(lNm) {
+    const lM = lNm * 1e-9;
+    const exponent = (h * c) / (lM * kB * T);
+    if (exponent > 150) return 0; // guard against extreme overflow
+    const c1 = 2 * Math.PI * h * c * c;
+    const denom = Math.pow(lM, 5) * (Math.exp(exponent) - 1);
+    return (c1 / denom) * 1e-9;
+  }
+
+  function calculate() {
+    const lambdaNm = parseFloat(document.getElementById('lambdaInput').value);
+    if (!lambdaNm || lambdaNm <= 0) {
+      alert("Please enter a valid positive wavelength in nm.");
+      return;
+    }
+
+    const lambdaM = lambdaNm * 1e-9;
+
+    // Optical regime badge
+    let badge = "";
+    if (lambdaNm < 380) {
+      badge = '<span class="region-badge reg-uv">Ultraviolet</span>';
+    } else if (lambdaNm <= 750) {
+      badge = '<span class="region-badge reg-vis">Visible</span>';
+    } else {
+      badge = '<span class="region-badge reg-ir">Infrared</span>';
+    }
+    document.getElementById('resPosition').innerHTML = badge;
+
+    // Numerical Computations
+    const lambda4 = Math.pow(lambdaM, 4);
+    const kT = kB * T; // Joules per mode
+    const numerator = 2 * Math.PI * c * kT;
+    
+    // Rayleigh-Jeans in SI and practical nm units
+    const E_RJ_SI = numerator / lambda4; // W/m^3
+    const E_RJ_nm = E_RJ_SI * 1e-9;       // W/(m^2 * nm)
+
+    // Real experimental value
+    const E_Real_nm = getRealE_nm(lambdaNm);
+    const ratio = E_Real_nm > 0 ? (E_RJ_nm / E_Real_nm) : Infinity;
+
+    // Student Takeaway & Discrepancy Evaluation
+    let devHtml = "";
+    let noteText = "";
+
+    if (lambdaNm < 380) {
+      devHtml = `<span style="color: #dc2626; font-weight: 700;">Overestimated by ${ratio.toExponential(2).replace('e+', ' × 10^')}× (Catastrophic)</span>`;
+      noteText = "<strong style='color: #dc2626;'>Ultraviolet Catastrophe:</strong> Rayleigh–Jeans shoots upward toward infinity. Real experimental emission drops sharply to near zero because high-frequency modes cannot be excited without discrete quantum packets of energy.";
+    } else if (lambdaNm <= 1200) {
+      devHtml = `<span style="color: #b45309; font-weight: 700;">Overestimated by ${ratio.toFixed(2)}×</span>`;
+      noteText = "Rayleigh–Jeans fails to predict the peak. It continues rising monotonically as wavelength decreases, whereas the real spectrum hits its maximum near 501.5 nm and bends downwards.";
+    } else {
+      devHtml = `<span style="color: #15803d; font-weight: 700;">Ratio: ${ratio.toFixed(2)}× (Converging)</span>`;
+      noteText = "<strong style='color: #15803d;'>Classical Equipartition Holds:</strong> In the infrared region, discrete quantum energy quanta become negligible relative to $k_B T$, so classical Rayleigh–Jeans closely matches experimental measurements.";
+    }
+
+    // Populate data table
+    document.getElementById('resLambda4').innerText = `${lambda4.toExponential(4).replace('e', ' × 10^')} m⁴`;
+    document.getElementById('resEquipartition').innerText = `${formatSci(kT, 3)} J`;
+    document.getElementById('resNumerator').innerText = `${formatSci(numerator, 3)} W·m`;
+    document.getElementById('resERJ').innerText = `${formatSci(E_RJ_nm, 2)} W·m⁻²·nm⁻¹`;
+    document.getElementById('resEReal').innerText = `${formatSci(E_Real_nm, 2)} W·m⁻²·nm⁻¹`;
+    document.getElementById('resDeviation').innerHTML = devHtml;
+    document.getElementById('resNote').innerHTML = noteText;
+  }
+
+  // Run calculation on load
+  window.addEventListener('DOMContentLoaded', () => {
+    calculate();
+  });
+</script>
+
+</body>
+</html>
