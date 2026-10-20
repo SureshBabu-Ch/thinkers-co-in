@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wien's Distribution Law Calculator (Solar Spectrum)</title>
+
+  <!-- MathJax Configuration and Script for LaTeX Rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['[', ']']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #d97706;
+      --exp-color: #15803d;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 30px 15px;
+      margin: 0;
+    }
+
+    .container {
+      background: var(--card);
+      border-radius: 12px;
+      max-width: 760px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      font-size: 1.5rem;
+    }
+
+    /* Classical Physics Callout Notice */
+    .classical-note {
+      background: #fffbeb;
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #92400e;
+    }
+
+    .classical-note strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 0.95rem;
+    }
+
+    .formula-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary-light);
+      padding: 14px 18px;
+      border-radius: 4px;
+      margin-bottom: 22px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .formula-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .constants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .const-card {
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.88rem;
+    }
+
+    .const-card strong {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .const-card .val {
+      font-weight: 600;
+      color: var(--text);
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+
+    .peak-highlight {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+    }
+
+    .peak-highlight strong {
+      color: #92400e;
+    }
+
+    .peak-highlight .val {
+      color: #b45309;
+    }
+
+    .input-section {
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary-light);
+    }
+
+    button.calc-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.calc-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .quick-btns {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .quick-btn:hover {
+      background: #f1f5f9;
+      color: var(--text);
+      border-color: #94a3b8;
+    }
+
+    .results {
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    td.val-col {
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .region-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+
+    .reg-uv { background: #ede9fe; color: #6d28d9; }
+    .reg-vis { background: #dcfce7; color: #15803d; }
+    .reg-ir { background: #fee2e2; color: #b91c1c; }
+
+    footer {
+      margin-top: 32px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Wien’s Distribution Law Calculator</h2>
+  
+  <!-- Explicit Classical Physics Disclaimer -->
+  <div class="classical-note">
+    <strong>Note on Classical Derivation:</strong>
+    This calculation is performed purely according to Wilhelm Wien's original 1896 distribution law. It relies exclusively on classical thermodynamics, Wien's displacement theorem, and the Stefan–Boltzmann law. Planck’s quantum hypothesis ($E = nh\nu$) and Planck's constant ($h$) are not introduced here.
+  </div>
+
+  <div class="formula-box">
+    <span class="formula-title">Wien's Spectral Distribution Equation (1896):</span>
+    $$E_\lambda(\lambda, T) = \frac{c_1}{\lambda^5} \exp\left(-\frac{c_2}{\lambda T}\right)$$
+  </div>
+
+  <!-- Constants Block -->
+  <div class="constants-grid">
+    <div class="const-card">
+      <strong>Effective Solar Temp (T)</strong>
+      <span class="val">5778 K</span>
+    </div>
+    <div class="const-card">
+      <strong>First Radiation Const (c₁)</strong>
+      <span class="val">4.156 × 10⁻¹⁶ W·m²</span>
+    </div>
+    <div class="const-card">
+      <strong>Second Radiation Const (c₂)</strong>
+      <span class="val">1.449 × 10⁻² m·K</span>
+    </div>
+    <div class="const-card peak-highlight">
+      <strong>Peak Wavelength (λ_max = c₂ / 5T)</strong>
+      <span class="val">501.56 nm</span>
+    </div>
+  </div>
+
+  <!-- Input Block -->
+  <div class="input-section">
+    <label for="lambdaInput">Enter Wavelength (&lambda;) in nanometers (nm):</label>
+    <div class="input-group">
+      <input type="number" id="lambdaInput" placeholder="e.g. 500" value="500" min="1" step="any">
+      <button class="calc-btn" onclick="calculate()">Calculate</button>
+    </div>
+    <div class="quick-btns">
+      <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center;">Quick test:</span>
+      <button type="button" class="quick-btn" onclick="setLambda(100)">100 nm (Far UV)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(200)">200 nm (UV)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(501.56)">501.56 nm (Peak)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(700)">700 nm (Red)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(1500)">1500 nm (Near IR)</button>
+      <button type="button" class="quick-btn" onclick="setLambda(3000)">3000 nm (Mid IR)</button>
+    </div>
+  </div>
+
+  <!-- Results Table -->
+  <div class="results">
+    <table>
+      <thead>
+        <tr>
+          <th>Quantity / Parameter</th>
+          <th>Calculated Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Position relative to &lambda;<sub>max</sub></td>
+          <td id="resPosition">—</td>
+        </tr>
+        <tr>
+          <td>Denominator Factor (&lambda;<sup>5</sup>)</td>
+          <td class="val-col" id="resLambda5" style="color: var(--primary);">—</td>
+        </tr>
+        <tr>
+          <td>Pre-exponential Factor (c<sub>1</sub> / &lambda;<sup>5</sup>)</td>
+          <td class="val-col" id="resPreExp" style="color: var(--primary);">—</td>
+        </tr>
+        <tr>
+          <td>Exponential / Boltzmann Factor (e<sup>-c₂ / &lambda;T</sup>)</td>
+          <td class="val-col" id="resExp" style="color: var(--primary);">—</td>
+        </tr>
+        <tr>
+          <td><strong>Wien's Predicted (E<sub>&lambda;</sub>)</strong></td>
+          <td class="val-col" id="resEWien" style="color: #b45309; font-size: 1.05rem;">—</td>
+        </tr>
+        <tr>
+          <td><strong>Real Experimental Observation (E<sub>&lambda;</sub>)</strong></td>
+          <td class="val-col" id="resEReal" style="color: var(--exp-color); font-size: 1.05rem;">—</td>
+        </tr>
+        <tr>
+          <td><strong>Discrepancy (Wien / Experimental)</strong></td>
+          <td class="val-col" id="resRatio" style="font-size: 1rem;">—</td>
+        </tr>
+        <tr>
+          <td>Physical Significance for Students</td>
+          <td id="resNote" style="font-size: 0.88rem; line-height: 1.45;">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer with Copyright & Institutional Affiliation -->
+  <footer>
+    &copy; All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.<br>
+    Mobile: 9000837556 &nbsp;|&nbsp; Email: <a href="mailto:sureshbabuchallari@gmail.com">sureshbabuchallari@gmail.com</a>
+  </footer>
+</div>
+
+<script>
+  // Constants for Wien's Classical Formulation (1896)
+  const T = 5778; // K
+  const c1_wien = 4.156e-16; // W * m^2 (Derived via sigma * c2^4 / 6)
+  const c2_wien = 1.449e-2;  // m * K (Derived via 5 * b)
+  const lambdaMaxNm = (c2_wien / (5 * T)) * 1e9; // ~501.557 nm
+
+  // Constants strictly for the true experimental reference value
+  const kB = 1.380649e-23;
+  const c = 2.99792458e8;
+  const h = 6.62607015e-34;
+
+  function setLambda(val) {
+    document.getElementById('lambdaInput').value = val;
+    calculate();
+  }
+
+  function formatSci(num, decimals = 3) {
+    if (num === 0) return "0";
+    if (num >= 0.01 && num < 1000) return num.toFixed(decimals);
+    return num.toExponential(decimals).replace('e', ' × 10^').replace('+', '');
+  }
+
+  // Real Observed Emission in W/(m^2 * nm)
+  function getRealE_nm(lNm) {
+    const lM = lNm * 1e-9;
+    const exponent = (h * c) / (lM * kB * T);
+    if (exponent > 150) return 0;
+    const c1 = 2 * Math.PI * h * c * c;
+    const denom = Math.pow(lM, 5) * (Math.exp(exponent) - 1);
+    return (c1 / denom) * 1e-9;
+  }
+
+  function calculate() {
+    const lambdaNm = parseFloat(document.getElementById('lambdaInput').value);
+    if (!lambdaNm || lambdaNm <= 0) {
+      alert("Please enter a valid positive wavelength in nm.");
+      return;
+    }
+
+    const lambdaM = lambdaNm * 1e-9;
+
+    // Determine position relative to peak
+    const diff = lambdaNm - lambdaMaxNm;
+    let posText = "";
+    if (Math.abs(diff) < 0.5) {
+      posText = "At the peak (λ ≈ λ_max)";
+    } else if (diff < 0) {
+      posText = "Left of peak (λ < λ_max, rising slope)";
+    } else {
+      posText = "Right of peak (λ > λ_max, falling slope)";
+    }
+
+    // Determine optical regime badge
+    let badge = "";
+    if (lambdaNm < 380) {
+      badge = '<span class="region-badge reg-uv">UV</span>';
+    } else if (lambdaNm <= 750) {
+      badge = '<span class="region-badge reg-vis">Visible</span>';
+    } else {
+      badge = '<span class="region-badge reg-ir">Infrared</span>';
+    }
+
+    document.getElementById('resPosition').innerHTML = `${posText} ${badge}`;
+
+    // Computations according to Wien (1896)
+    const lambda5 = Math.pow(lambdaM, 5);
+    const preExp = c1_wien / lambda5;
+    const expArg = c2_wien / (lambdaM * T);
+    const expFactor = Math.exp(-expArg);
+    const E_Wien_SI = preExp * expFactor; // W/m^3
+    const E_Wien_nm = E_Wien_SI * 1e-9;   // W/(m^2 * nm)
+
+    // Real experimental value
+    const E_Real_nm = getRealE_nm(lambdaNm);
+    const ratio = E_Real_nm > 0 ? (E_Wien_nm / E_Real_nm) : 1.0;
+
+    // Pedagogical note on Wien's behavior across spectrum
+    let ratioHtml = "";
+    let noteText = "";
+
+    if (lambdaNm <= 600) {
+      ratioHtml = `<span style="color: #15803d; font-weight: 700;">Ratio: ${ratio.toFixed(3)}× (Accurate)</span>`;
+      noteText = "<strong style='color: #15803d;'>UV/Visible Success:</strong> Wien's exponential factor suppresses short-wavelength radiation, avoiding the UV catastrophe and agreeing with experimental measurements.";
+    } else if (lambdaNm <= 1500) {
+      ratioHtml = `<span style="color: #b45309; font-weight: 700;">Ratio: ${ratio.toFixed(3)}× (Underestimates)</span>`;
+      noteText = "In the near-infrared, Wien's formula drops faster than observed experimental values, demonstrating the onset of the classical infrared deficit.";
+    } else {
+      ratioHtml = `<span style="color: #b91c1c; font-weight: 700;">Ratio: ${ratio.toFixed(3)}× (Infrared Deficit)</span>`;
+      noteText = "<strong style='color: #b91c1c;'>Infrared Deficit:</strong> At long wavelengths, Wien's exponential tail drops off too quickly compared to the real blackbody curve. This limitation motivated Planck's modification in October 1900.";
+    }
+
+    // Populate table
+    document.getElementById('resLambda5').innerText = `${lambda5.toExponential(4).replace('e', ' × 10^')} m⁵`;
+    document.getElementById('resPreExp').innerText = `${formatSci(preExp, 3)} W·m⁻³`;
+    document.getElementById('resExp').innerText = formatSci(expFactor, 4);
+    document.getElementById('resEWien').innerText = `${formatSci(E_Wien_nm, 2)} W·m⁻²·nm⁻¹`;
+    document.getElementById('resEReal').innerText = `${formatSci(E_Real_nm, 2)} W·m⁻²·nm⁻¹`;
+    document.getElementById('resRatio').innerHTML = ratioHtml;
+    document.getElementById('resNote').innerHTML = noteText;
+  }
+
+  // Run calculation once DOM is ready
+  window.addEventListener('DOMContentLoaded', () => {
+    calculate();
+  });
+</script>
+
+</body>
+</html>
