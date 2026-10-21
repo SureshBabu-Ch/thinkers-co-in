@@ -455,13 +455,13 @@
     let noteText = "";
 
     if (lambdaNm < 380) {
-      devHtml = `<span style="color: #dc2626; font-weight: 700;">Overestimated by ${ratio.toExponential(2).replace('e+', ' × 10^')}× (Catastrophic)</span>`;
+      devHtml = `<span style="color: #dc2626; font-weight: 700;">Overestimated by ${ratio.toExponential(2).replace('e+', ' × 10^')} times (Catastrophic)</span>`;
       noteText = "<strong style='color: #dc2626;'>Ultraviolet Catastrophe:</strong> Rayleigh–Jeans shoots upward toward infinity. Real experimental emission drops sharply to near zero because high-frequency modes cannot be excited without discrete quantum packets of energy.";
     } else if (lambdaNm <= 1200) {
-      devHtml = `<span style="color: #b45309; font-weight: 700;">Overestimated by ${ratio.toFixed(2)}×</span>`;
+      devHtml = `<span style="color: #b45309; font-weight: 700;">Overestimated by ${ratio.toFixed(2)} times</span>`;
       noteText = "Rayleigh–Jeans fails to predict the peak. It continues rising monotonically as wavelength decreases, whereas the real spectrum hits its maximum near 501.5 nm and bends downwards.";
     } else {
-      devHtml = `<span style="color: #15803d; font-weight: 700;">Ratio: ${ratio.toFixed(2)}× (Converging)</span>`;
+      devHtml = `<span style="color: #15803d; font-weight: 700;">Ratio: ${ratio.toFixed(2)} (Converging)</span>`;
       noteText = "<strong style='color: #15803d;'>Classical Equipartition Holds:</strong> In the infrared region, discrete quantum energy quanta become negligible relative to $k_B T$, so classical Rayleigh–Jeans closely matches experimental measurements.";
     }
 
