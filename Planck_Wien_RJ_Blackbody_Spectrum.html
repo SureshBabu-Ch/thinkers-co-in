@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blackbody Radiation Spectrum: Physical Curves & Exact Quantum Deviations</title>
+  <title>Blackbody Radiation Spectrum: Spectral Emissive Power & Quantum Deviations</title>
   <!-- MathJax CDN -->
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
@@ -52,13 +52,11 @@
       gap: 0.75rem; 
       flex: 1 1 320px; 
     }
-    
     .slider-box label { 
       font-weight: 600; 
       font-size: 0.9rem; 
       white-space: nowrap; 
     }
-    
     input[type="range"] { 
       flex: 1; 
       cursor: pointer; 
@@ -85,7 +83,6 @@
       flex-shrink: 0; 
       flex-wrap: wrap; 
     }
-    
     .btn-span {
       background: #e2e8f0;
       border: none;
@@ -231,8 +228,8 @@
 
 <div class="container">
   <div class="card">
-    <h1>Blackbody Radiation Spectrum</h1>
-    <p class="sub">Dual Synchronized Panels: Exact match with Planck’s Law (Top) paired with Classical Deviations (Bottom)</p>
+    <h1>Blackbody Radiation Spectrum (Spectral Emissive Power)</h1>
+    <p class="sub">Dual Synchronized Panels: Exact match with Planck’s Law Spectral Emissive Power (Top) paired with Classical Deviations (Bottom)</p>
 
     <div class="control-panel">
       <div class="slider-box">
@@ -250,7 +247,7 @@
     </div>
 
     <div class="panel-header">
-      <span>PANEL 1: Blackbody Radiation Spectrum \(E(\lambda)\)</span>
+      <span>PANEL 1: Spectral Emissive Power Spectrum \(E(\lambda)\)</span>
       <span style="font-size:0.82rem; font-weight:600; color:var(--muted);">Peak & Infrared Tail</span>
     </div>
 
@@ -300,9 +297,9 @@
         <!-- Box 2: Wien Law Calculation -->
         <div class="calc-box" style="border-top: 3px solid var(--wien);">
           <div class="calc-box-title" style="color:var(--wien);">
-            <span>2. Wien's Law Deviation Calculation</span>
+            <span>2. Wien's Law (1896 Empirical) Deviation</span>
           </div>
-          <div class="step-line">\(\Delta_{\text{Wien}} = -e^{-x} \times 100\%\)</div>
+          <div class="step-line">\(\Delta_{\text{Wien}} = -e^{-\frac{C_2}{\lambda T}} \times 100\%\)</div>
           <div class="step-line" id="stepWienExp">e^(-0.7267) = 0.4835</div>
           <div class="step-line" id="stepWienFinal" style="margin-top:0.6rem; color:#0f172a;">
             <strong>Wien Deficit Result:</strong><br>
@@ -329,22 +326,33 @@
     <!-- Formula Foundations -->
     <div class="formula-grid">
       <div class="formula-card" style="border-top: 3px solid var(--planck);">
-        <div class="formula-title" style="color:var(--planck);">1. Planck Quantum Law (1900)</div>
-        <div class="formula-math">\[E(\lambda) = \frac{8\pi hc}{\lambda^5 \left(e^{\frac{hc}{\lambda k_B T}} - 1\right)}\]</div>
-        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Introduces the quantum of action \(h\). Baseline reference standard across all wavelengths (\(\Delta = 0\%\)).</p>
+        <div class="formula-title" style="color:var(--planck);">1. Planck Quantum Emissive Power Law (1900)</div>
+        <div class="formula-math">\[E(\lambda) = \frac{2\pi hc^2}{\lambda^5 \left(e^{\frac{hc}{\lambda k_B T}} - 1\right)}\]</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Emissive power emitted into a hemisphere. Baseline reference standard across all wavelengths (\(\Delta = 0\%\)).</p>
       </div>
 
       <div class="formula-card" style="border-top: 3px solid var(--wien);">
-        <div class="formula-title" style="color:var(--wien);">2. Wien's Distribution Law (1896)</div>
+        <div class="formula-title" style="color:var(--wien);">2. Wien's Empirical Distribution Law (1896)</div>
         <div class="formula-math">\[E(\lambda) = \frac{C_1}{\lambda^5} e^{-\frac{C_2}{\lambda T}}\]</div>
-        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Empirical constants \(C_1, C_2\) (no \(h\)). Agrees in UV, but suffers an emissive power deficit in IR.</p>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Historical empirical formula using constants \(C_1, C_2\) (formulated before quantum action \(h\) was introduced in 1900).</p>
       </div>
 
       <div class="formula-card" style="border-top: 3px solid var(--rj);">
-        <div class="formula-title" style="color:var(--rj);">3. Rayleigh–Jeans Classical Law (1900)</div>
-        <div class="formula-math">\[E(\lambda) = \frac{8\pi k_B T}{\lambda^4}\]</div>
-        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Purely classical equipartition using \(k_B\) (no \(h\)). Diverges in UV; converges to Planck's Law in Far-IR.</p>
+        <div class="formula-title" style="color:var(--rj);">3. Rayleigh–Jeans Classical Emissive Power Law (1900)</div>
+        <div class="formula-math">\[E(\lambda) = \frac{2\pi c k_B T}{\lambda^4}\]</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Classical equipartition law. Diverges in UV; converges to Planck's emissive power in Far-IR.</p>
       </div>
+    </div>
+
+    <!-- Note on Pre-factor Cancellation -->
+    <div style="margin-top: 1rem; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; color: var(--muted);">
+      <strong>Historical Note:</strong> Wilhelm Wien formulated his law in 1896 using arbitrary empirical constants \(C_1\) and \(C_2\) prior to Planck's discovery of the quantum \(h\). The constant pre-factors cancel out completely when computing relative percentage deviations \(\Delta\).
+    </div>
+
+    <!-- Copyright Footer -->
+    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center; font-size: 0.82rem; color: var(--muted); line-height: 1.6;">
+      © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, Vasireddy Venkatadri International Technological University.<br>
+      Mobile: 9000837556 &nbsp;|&nbsp; Email: sureshbabuchallari@gmail.com
     </div>
   </div>
 </div>
@@ -471,7 +479,7 @@
     }
 
     // ==========================================
-    // PANEL 1: BLACKBODY RADIATION SPECTRUM
+    // PANEL 1: SPECTRAL EMISSIVE POWER SPECTRUM
     // ==========================================
 
     // 1A. Rayleigh-Jeans Curve (Top)
@@ -574,11 +582,11 @@
     ctx.stroke();
 
     ctx.save();
-    ctx.translate(18, topT + topH / 2 + 55);
+    ctx.translate(18, topT + topH / 2 + 75);
     ctx.rotate(-Math.PI / 2);
     ctx.fillStyle = '#0f172a';
     ctx.font = 'bold 11px sans-serif';
-    ctx.fillText("Emissive Power E(λ) [% of Peak]", 0, 0);
+    ctx.fillText("Spectral Emissive Power E(λ) [% of Peak]", 0, 0);
     ctx.restore();
 
     // ==========================================
