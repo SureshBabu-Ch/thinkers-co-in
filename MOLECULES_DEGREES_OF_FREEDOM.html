@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
 <!--
   © All rights reserved. Dr. Ch. Suresh Babu, Associate Professor in Chemistry, 
   Vasireddy Venkatadri International Technological University. 
   Mobile: 9000837556, Email: sureshbabuchallari@gmail.com
 -->
-  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Molecular Degrees of Freedom (DoF) Interactive Simulation</title>
   <style>
@@ -249,6 +249,7 @@
       margin: 10px 0;
       font-family: monospace;
       font-size: 0.92rem;
+      line-height: 1.6;
     }
 
     footer {
@@ -273,22 +274,22 @@
     <div class="dof-card" style="border-top: 3px solid var(--trans-col);">
       <span>Active Translational DoF</span>
       <strong id="statTrans" style="color:var(--trans-col);">3</strong>
-      <small id="statTransDesc">X, Y, Z active</small>
+      <small id="statTransDesc">3 of 3 directions active</small>
     </div>
     <div class="dof-card" style="border-top: 3px solid var(--rot-col);">
       <span>Active Rotational DoF</span>
       <strong id="statRot" style="color:var(--rot-col);">2</strong>
-      <small id="statRotDesc">Axes 1 &amp; 2 active</small>
+      <small id="statRotDesc">2 of 2 axes active</small>
     </div>
     <div class="dof-card" style="border-top: 3px solid var(--vib-col);">
-      <span>Active Vibrational DoF</span>
-      <strong id="statVib" style="color:var(--vib-col);">2</strong>
-      <small id="statVibDesc">1 Mode &times; 2 Coordinates</small>
+      <span>Active Vibrational Terms</span>
+      <strong id="statVib" style="color:var(--vib-col);">0</strong>
+      <small id="statVibDesc">Frozen / Inactive</small>
     </div>
     <div class="dof-card" style="border-top: 3px solid var(--tot-col);">
-      <span>Total Active Degrees of Freedom</span>
-      <strong id="statTotal" style="color:var(--tot-col);">f = 7</strong>
-      <small id="statMaxThreshold">Max for Molecule: 7</small>
+      <span>Total Equipartition Terms</span>
+      <strong id="statTotal" style="color:var(--tot-col);">f = 5</strong>
+      <small id="statMaxThreshold">Max Terms: 5 | Spatial 3N = 5</small>
     </div>
   </div>
 
@@ -297,10 +298,10 @@
       <label><b>Molecular Geometry:</b></label>
       <select id="molSelect">
         <option value="mono">Monoatomic (He, Ar) — 3 Trans</option>
-        <option value="diatomic_rigid">Diatomic Rigid (O₂, N₂ at 300K) — 3 Trans + 2 Rot</option>
-        <option value="diatomic_vib" selected>Diatomic Vibrating (High T) — 3 Trans + 2 Rot + 2 Vib</option>
-        <option value="poly_linear">Linear Polyatomic (CO₂) — 3 Trans + 2 Rot + 4 Vib</option>
-        <option value="poly_nonlinear">Non-Linear Polyatomic (H₂O) — 3 Trans + 3 Rot + 6 Vib</option>
+        <option value="diatomic_rigid">Diatomic Rigid (O₂, N₂ at 300K) — 3 Trans + 2 Rot (Vib Frozen)</option>
+        <option value="diatomic_vib" selected>Diatomic Vibrating (High T) — 3 Trans + 2 Rot + 1 Mode (2 Coords)</option>
+        <option value="poly_linear">Linear Polyatomic (CO₂) — 3 Trans + 2 Rot + 4 Modes (8 Coords)</option>
+        <option value="poly_nonlinear">Non-Linear Polyatomic (H₂O) — 3 Trans + 3 Rot + 3 Modes (6 Coords)</option>
       </select>
     </div>
 
@@ -309,8 +310,8 @@
       <label><b>Translation:</b></label>
       <div class="axis-btn-group">
         <button class="toggle-btn active trans-btn" id="btnTx">X</button>
-        <button class="toggle-btn active trans-btn" id="btnTy">Y</button>
-        <button class="toggle-btn active trans-btn" id="btnTz">Z</button>
+        <button class="toggle-btn trans-btn active" id="btnTy">Y</button>
+        <button class="toggle-btn trans-btn active" id="btnTz">Z</button>
       </div>
     </div>
 
@@ -318,8 +319,8 @@
     <div class="tool-group">
       <label><b>Rotation:</b></label>
       <div class="axis-btn-group">
-        <button class="toggle-btn active rot-btn" id="btnR1">Rot 1</button>
-        <button class="toggle-btn active rot-btn" id="btnR2">Rot 2</button>
+        <button class="toggle-btn rot-btn active" id="btnR1">Rot 1</button>
+        <button class="toggle-btn rot-btn active" id="btnR2">Rot 2</button>
         <button class="toggle-btn rot-btn" id="btnR3" disabled>Rot 3</button>
       </div>
     </div>
@@ -327,40 +328,34 @@
     <!-- Vibration Toggle -->
     <div class="tool-group">
       <label><b>Vibration:</b></label>
-      <button class="toggle-btn active vib-btn" id="btnVib">Vib Modes</button>
+      <button class="toggle-btn vib-btn active" id="btnVib">Vib Modes</button>
     </div>
   </div>
 
   <div class="card">
     <h2>
       <span>3D Spatial Visualization of Molecular Movement</span>
-      <span style="font-size:0.82rem; color:var(--muted); font-weight:normal;" id="stateLabel">Diatomic Vibrating Active</span>
+      <span style="font-size:0.82rem; color:var(--muted); font-weight:normal;" id="stateLabel">Diatomic Vibrating (High T)</span>
     </h2>
     <canvas id="molCanvas" width="940" height="460"></canvas>
     
     <div class="legend-row">
-      <span><span class="legend-dot" style="background:#38bdf8;"></span><b>Center-of-Mass Translation</b> (Linear Drift along X, Y, Z)</span>
+      <span><span class="legend-dot" style="background:#38bdf8;"></span><b>Center-of-Mass Translation</b> (Drift along X, Y, Z)</span>
       <span><span class="legend-dot" style="background:#34d399;"></span><b>Rigid Body Rotation</b> (Tumbling about Principal Axes)</span>
-      <span><span class="legend-dot" style="background:#fbbf24;"></span><b>Internuclear Vibration</b> (Spring Extension &amp; Compression)</span>
+      <span><span class="legend-dot" style="background:#fbbf24;"></span><b>Internuclear Vibration</b> (Spring Oscillation / Normal Modes)</span>
       <span style="margin-left:auto; color:#a78bfa;">🟣 Real-Time Trajectory Track</span>
     </div>
   </div>
 
   <div class="theory-card">
-    <h3>Exact Degree of Freedom (DoF) Calculation</h3>
-    <div class="math-step-box" id="calcBreakdown">
-      Counting Active Spatial &amp; Phase Space Coordinates:<br>
-      • Translation (Center of Mass): 3 coordinates (X, Y, Z)<br>
-      • Rotation (Principal Axes): 2 coordinates (Axes 1 &amp; 2)<br>
-      • Vibration (Modes &times; 2): 2 coordinates (1 Mode &times; [Kinetic + Potential])<br>
-      --------------------------------------------------<br>
-      Total Active Degrees of Freedom: f = 3 + 2 + 2 = 7 DoFs
-    </div>
+    <h3>Exact Degree of Freedom (DoF) Calculation &amp; Equipartition</h3>
+    <div class="math-step-box" id="calcBreakdown">Loading calculation breakdown...</div>
     <ul style="margin: 8px 0 8px 20px;">
-      <li><b>Translational DoF ($f_{\text{trans}} = 3$):</b> Every atom and molecule has 3 independent directions to drift through 3D space: $x, y, z$.</li>
-      <li><b>Rotational DoF ($f_{\text{rot}}$):</b> Linear molecules have <b>2 rotational axes</b> perpendicular to their bond axis ($I_{\parallel} \approx 0$). Non-linear molecules tumble in all 3 dimensions, possessing <b>3 rotational axes</b>.</li>
-      <li><b>Vibrational Coordinates ($2 \times \text{Modes}$):</b> Each normal vibrational mode counts as <b>2 degrees of freedom</b> because it requires both a kinetic coordinate ($\frac{1}{2}\mu v^2$) and a potential spring coordinate ($\frac{1}{2}kx^2$).</li>
-      <li><b>Equipartition Principle:</b> In thermal equilibrium, every single one of these active independent degrees of freedom receives an identical share of motion without preference.</li>
+      <li><b>Translational Modes ($f_{\text{trans}} = 3$):</b> Every molecule can translate independently along $x, y, z$ in 3D space, contributing $\frac{3}{2}RT$ to molar internal energy.</li>
+      <li><b>Rotational Modes ($f_{\text{rot}}$):</b> Linear molecules have <b>2 rotational axes</b> perpendicular to the internuclear axis ($I_{\parallel} \approx 0$). Non-linear molecules tumble around all <b>3 independent principal axes</b>.</li>
+      <li><b>Vibrational Normal Modes ($N_{\text{vib}}$):</b> Linear molecules possess $3N - 5$ normal modes (e.g., $3(3)-5 = 4$ for $\text{CO}_2$). Non-linear molecules possess $3N - 6$ normal modes (e.g., $3(3)-6 = 3$ for $\text{H}_2\text{O}$).</li>
+      <li><b>Energy Equipartition Multiplier ($\times 2$):</b> In the classical limit, each normal vibrational mode contributes <b>2 quadratic terms</b> (Kinetic: $\frac{1}{2}\mu v^2$ + Potential: $\frac{1}{2}kx^2$). Therefore, each active mode contributes $R$ to $C_v$ (or $1 k_B T$ to average molecular energy).</li>
+      <li><b>Quantum Freeze-Out:</b> In rigid diatomics like $\text{N}_2$ and $\text{O}_2$ at $300\text{ K}$, thermal energy ($k_B T \approx 207\text{ cm}^{-1}$) is far smaller than the vibrational gap ($\Delta E_{\text{vib}} > 1500\text{ cm}^{-1}$). Vibrations remain frozen ($v=0$) until high temperatures are reached.</li>
     </ul>
   </div>
 
@@ -399,11 +394,14 @@
   let r1 = true, r2 = true, r3 = false;
   let vib = true;
 
-  // Preset definitions
+  // Preset definitions with corrected vibrational normal modes and coordinates
   const presets = {
     mono: {
       name: "Monoatomic (He, Ar)",
-      maxTrans: 3, maxRot: 0, maxVibModes: 0, maxTotal: 3,
+      natoms: 1,
+      maxTrans: 3, maxRot: 0, maxVibModes: 0,
+      spatialDoF: 3, // 3N = 3
+      maxEquiTerms: 3, // 3 trans
       defTx: true, defTy: true, defTz: true,
       defR1: false, defR2: false, defR3: false,
       defVib: false,
@@ -411,7 +409,10 @@
     },
     diatomic_rigid: {
       name: "Diatomic Rigid (O₂, N₂ at 300K)",
-      maxTrans: 3, maxRot: 2, maxVibModes: 0, maxTotal: 5,
+      natoms: 2,
+      maxTrans: 3, maxRot: 2, maxVibModes: 0, // Vibrations frozen at room temp
+      spatialDoF: 5, // 3 trans + 2 rot (1 mode frozen)
+      maxEquiTerms: 5, // 3 trans + 2 rot
       defTx: true, defTy: true, defTz: true,
       defR1: true, defR2: true, defR3: false,
       defVib: false,
@@ -419,7 +420,10 @@
     },
     diatomic_vib: {
       name: "Diatomic Vibrating (High T)",
-      maxTrans: 3, maxRot: 2, maxVibModes: 1, maxTotal: 7, // 1 mode * 2 = 2 coords
+      natoms: 2,
+      maxTrans: 3, maxRot: 2, maxVibModes: 1, // 3N - 5 = 1 mode
+      spatialDoF: 6, // 3N = 6
+      maxEquiTerms: 7, // 3 trans + 2 rot + (1 * 2 vib coords) = 7
       defTx: true, defTy: true, defTz: true,
       defR1: true, defR2: true, defR3: false,
       defVib: true,
@@ -427,7 +431,10 @@
     },
     poly_linear: {
       name: "Linear Polyatomic (CO₂)",
-      maxTrans: 3, maxRot: 2, maxVibModes: 2, maxTotal: 9, // 2 modes * 2 = 4 coords
+      natoms: 3,
+      maxTrans: 3, maxRot: 2, maxVibModes: 4, // 3(3) - 5 = 4 modes
+      spatialDoF: 9, // 3N = 9
+      maxEquiTerms: 13, // 3 trans + 2 rot + (4 * 2 vib coords) = 13
       defTx: true, defTy: true, defTz: true,
       defR1: true, defR2: true, defR3: false,
       defVib: true,
@@ -435,7 +442,10 @@
     },
     poly_nonlinear: {
       name: "Non-Linear Polyatomic (H₂O)",
-      maxTrans: 3, maxRot: 3, maxVibModes: 3, maxTotal: 12, // 3 modes * 2 = 6 coords
+      natoms: 3,
+      maxTrans: 3, maxRot: 3, maxVibModes: 3, // 3(3) - 6 = 3 modes
+      spatialDoF: 9, // 3N = 9
+      maxEquiTerms: 12, // 3 trans + 3 rot + (3 * 2 vib coords) = 12
       defTx: true, defTy: true, defTz: true,
       defR1: true, defR2: true, defR3: true,
       defVib: true,
@@ -472,38 +482,50 @@
 
     btnVib.classList.toggle('active', vib && curPreset.allowVib);
 
-    // Coordinate Counting
-    const activeTransCount = (tx ? 1 : 0) + (ty ? 1 : 0) + (tz ? 1 : 0);
-    const activeRotCount = (r1 && curPreset.allowR1 ? 1 : 0) + 
-                           (r2 && curPreset.allowR2 ? 1 : 0) + 
-                           (r3 && curPreset.allowR3 ? 1 : 0);
+    // Active component counting
+    const activeTrans = (tx ? 1 : 0) + (ty ? 1 : 0) + (tz ? 1 : 0);
+    const activeRot = (r1 && curPreset.allowR1 ? 1 : 0) + 
+                      (r2 && curPreset.allowR2 ? 1 : 0) + 
+                      (r3 && curPreset.allowR3 ? 1 : 0);
     
-    // Each vibrational mode has 2 coordinates (Kinetic + Potential)
-    const activeVibCoords = (vib && curPreset.allowVib) ? curPreset.maxVibModes * 2 : 0;
-    const totalActiveDoF = activeTransCount + activeRotCount + activeVibCoords;
+    const isVibActive = vib && curPreset.allowVib;
+    const activeModes = isVibActive ? curPreset.maxVibModes : 0;
+    const activeVibEquiTerms = activeModes * 2; // Kinetic + Potential per mode
+
+    // Spatial DoF vs Equipartition Total
+    const totalActiveSpatial = activeTrans + activeRot + activeModes;
+    const totalEquipartitionTerms = activeTrans + activeRot + activeVibEquiTerms;
 
     // Update Banner Numbers
-    statTrans.innerText = activeTransCount;
-    statTransDesc.innerText = `${activeTransCount} of 3 directions active`;
+    statTrans.innerText = activeTrans;
+    statTransDesc.innerText = `${activeTrans} of 3 directions active`;
 
-    statRot.innerText = activeRotCount;
-    statRotDesc.innerText = `${activeRotCount} of ${curPreset.maxRot} axes active`;
+    statRot.innerText = activeRot;
+    statRotDesc.innerText = `${activeRot} of ${curPreset.maxRot} axes active`;
 
-    statVib.innerText = activeVibCoords;
-    statVibDesc.innerText = activeVibCoords > 0 ? `${curPreset.maxVibModes} Mode(s) × 2 Coords` : 'Frozen / Inactive';
+    statVib.innerText = activeVibEquiTerms;
+    statVibDesc.innerText = activeModes > 0 
+      ? `${activeModes} Mode(s) × 2 = ${activeVibEquiTerms} terms` 
+      : (curPreset.maxVibModes === 0 && curPreset.natoms > 1 ? 'Frozen at 300 K' : '0 Inactive Modes');
 
-    statTotal.innerText = `f = ${totalActiveDoF}`;
-    statMaxThreshold.innerText = `Max for Molecule: ${curPreset.maxTotal}`;
-    stateLabel.innerText = `${curPreset.name} (Active: ${totalActiveDoF} DoFs)`;
+    statTotal.innerText = `f = ${totalEquipartitionTerms}`;
+    statMaxThreshold.innerText = `Max Equipartition: ${curPreset.maxEquiTerms} | Total 3N: ${curPreset.natoms * 3}`;
+    stateLabel.innerText = `${curPreset.name} (Active Terms: ${totalEquipartitionTerms})`;
 
-    // Detailed Math Card Breakdown
+    // Detailed Breakdown Card
     calcBreakdown.innerHTML = 
-      `Counting Active Spatial & Phase Space Coordinates:<br>` +
-      `• Translation: <b>${activeTransCount} DoF</b> (X: ${tx?1:0}, Y: ${ty?1:0}, Z: ${tz?1:0})<br>` +
-      `• Rotation: <b>${activeRotCount} DoF</b> (${activeRotCount} of ${curPreset.maxRot} axes enabled)<br>` +
-      `• Vibration: <b>${activeVibCoords} DoF</b> (${(vib && curPreset.allowVib) ? curPreset.maxVibModes : 0} Mode(s) × 2 [Kin + Pot])<br>` +
-      `--------------------------------------------------<br>` +
-      `Total Active Degrees of Freedom: <b>f = ${activeTransCount} + ${activeRotCount} + ${activeVibCoords} = ${totalActiveDoF} DoF</b> (Max possible = ${curPreset.maxTotal})`;
+      `<b>1. Spatial Coordinate Breakdown (Total 3N = ${curPreset.natoms * 3}):</b><br>` +
+      `   • Translation (f_trans) : <b>${activeTrans}</b> of 3<br>` +
+      `   • Rotation (f_rot)       : <b>${activeRot}</b> of ${curPreset.maxRot}<br>` +
+      `   • Normal Modes (N_vib)   : <b>${activeModes}</b> of ${curPreset.maxVibModes} normal mode(s)<br>` +
+      `   » Active Spatial Degrees of Freedom: <b>${totalActiveSpatial}</b> (out of max ${curPreset.spatialDoF})<br><br>` +
+      `<b>2. Equipartition Energy Contribution (Molar Heat Capacity Basis):</b><br>` +
+      `   • Translation Terms   : ${activeTrans} × (½RT) = <b>${(activeTrans * 0.5).toFixed(1)} RT</b><br>` +
+      `   • Rotation Terms      : ${activeRot} × (½RT) = <b>${(activeRot * 0.5).toFixed(1)} RT</b><br>` +
+      `   • Vibration Terms     : ${activeModes} Mode(s) × 2 × (½RT) = <b>${activeModes.toFixed(1)} RT</b> (Kinetic + Potential)<br>` +
+      `   ------------------------------------------------------------<br>` +
+      `   » Total Equipartition Terms: <b>f = ${activeTrans} + ${activeRot} + ${activeVibEquiTerms} = ${totalEquipartitionTerms}</b><br>` +
+      `   » Molar Internal Energy: <b>U_m = ${(totalEquipartitionTerms * 0.5).toFixed(1)} RT</b> | Predicted <b>C_v,m = ${(totalEquipartitionTerms * 0.5).toFixed(1)} R</b>`;
   }
 
   // Event Listeners
@@ -589,7 +611,7 @@
     const posY = ty ? transAmp * Math.cos(simTime * 1.2) : 0;
     const posZ = tz ? transAmp * Math.sin(simTime * 0.7) : 0;
 
-    // Record Center-of-Mass Trail
+    // Center-of-Mass Trail
     const cmPt = project3D(posX, posY, posZ, cx, cy);
     trail.push(cmPt);
     if (trail.length > 55) trail.shift();
@@ -611,10 +633,10 @@
     const ang2 = (r2 && curPreset.allowR2) ? simTime * 1.3 : 0;
     const ang3 = (r3 && curPreset.allowR3) ? simTime * 2.1 : 0;
 
-    // 4. Vibrational Spring Displacement
+    // 4. Vibrational Oscillation
     const isVibrating = vib && curPreset.allowVib;
-    const vibDisp = isVibrating ? 12 * Math.sin(simTime * 4.5) : 0;
-    const bondLen = 38 + vibDisp;
+    const vibDisp = isVibrating ? 10 * Math.sin(simTime * 5.5) : 0;
+    const baseBond = 40;
 
     // Local 3D rotation transform about molecule CM
     function transformLocal(lx, ly, lz) {
@@ -638,14 +660,16 @@
 
     // 5. Draw Molecule Atoms & Bonds
     if (molSelect.value === 'mono') {
-      // Single atom
       const pAtom = project3D(posX, posY, posZ, cx, cy);
       drawAtom(pAtom.x, pAtom.y, 14, '#38bdf8');
     } else if (molSelect.value === 'poly_nonlinear') {
-      // Non-linear bent H2O molecule
-      const pO = transformLocal(0, 8, 0);
-      const pH1 = transformLocal(-bondLen * 0.75, -bondLen * 0.6, 0);
-      const pH2 = transformLocal(bondLen * 0.75, -bondLen * 0.6, 0);
+      // H2O with bending & stretching dynamics
+      const hBend = isVibrating ? 6 * Math.sin(simTime * 5.5) : 0;
+      const bLenH = baseBond + (isVibrating ? vibDisp * 0.7 : 0);
+
+      const pO = transformLocal(0, 10, 0);
+      const pH1 = transformLocal(-bLenH * 0.75 - hBend, -bLenH * 0.6, 0);
+      const pH2 = transformLocal(bLenH * 0.75 + hBend, -bLenH * 0.6, 0);
 
       drawBond(pO.x, pO.y, pH1.x, pH1.y);
       drawBond(pO.x, pO.y, pH2.x, pH2.y);
@@ -653,32 +677,40 @@
       drawAtom(pO.x, pO.y, 13, '#f87171');
       drawAtom(pH1.x, pH1.y, 8, '#38bdf8');
       drawAtom(pH2.x, pH2.y, 8, '#38bdf8');
-    } else if (molSelect.value === 'poly_linear') {
-      // Linear triatomic CO2 molecule (O = C = O)
-      const pC = transformLocal(0, 0, 0);
-      const pO1 = transformLocal(-bondLen, 0, 0);
-      const pO2 = transformLocal(bondLen, 0, 0);
 
-      drawBond(pO1.x, pO1.y, pO2.x, pO2.y);
+      if (isVibrating) drawVibIndicator((pH1.x + pH2.x) / 2, (pH1.y + pH2.y) / 2);
+    } else if (molSelect.value === 'poly_linear') {
+      // CO2 (O = C = O) with stretching & bending indication
+      const cBendY = isVibrating ? 8 * Math.sin(simTime * 5.0) : 0;
+      const oStretch = isVibrating ? vibDisp : 0;
+
+      const pC = transformLocal(0, cBendY, 0);
+      const pO1 = transformLocal(-(baseBond + 8 + oStretch), 0, 0);
+      const pO2 = transformLocal((baseBond + 8 + oStretch), 0, 0);
+
+      drawBond(pO1.x, pO1.y, pC.x, pC.y);
+      drawBond(pC.x, pC.y, pO2.x, pO2.y);
+
       drawAtom(pC.x, pC.y, 11, '#94a3b8');
       drawAtom(pO1.x, pO1.y, 12, '#f87171');
       drawAtom(pO2.x, pO2.y, 12, '#f87171');
+
+      if (isVibrating) {
+        drawVibIndicator((pO1.x + pC.x) / 2, (pO1.y + pC.y) / 2);
+        drawVibIndicator((pC.x + pO2.x) / 2, (pC.y + pO2.y) / 2);
+      }
     } else {
       // Diatomic molecule (Rigid or Vibrating)
-      const pA1 = transformLocal(-bondLen, 0, 0);
-      const pA2 = transformLocal(bondLen, 0, 0);
+      const currentBond = baseBond + vibDisp;
+      const pA1 = transformLocal(-currentBond, 0, 0);
+      const pA2 = transformLocal(currentBond, 0, 0);
 
       drawBond(pA1.x, pA1.y, pA2.x, pA2.y);
       drawAtom(pA1.x, pA1.y, 12, '#38bdf8');
       drawAtom(pA2.x, pA2.y, 12, '#34d399');
 
-      // Spring coil indicator for vibrational mode
       if (isVibrating) {
-        ctx.strokeStyle = 'rgba(251, 191, 36, 0.8)';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.arc((pA1.x + pA2.x) / 2, (pA1.y + pA2.y) / 2, 8, 0, Math.PI * 2);
-        ctx.stroke();
+        drawVibIndicator((pA1.x + pA2.x) / 2, (pA1.y + pA2.y) / 2);
       }
     }
 
@@ -706,6 +738,14 @@
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  function drawVibIndicator(x, y) {
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(x, y, 8, 0, Math.PI * 2);
     ctx.stroke();
   }
 
